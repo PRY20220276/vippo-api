@@ -1,0 +1,42 @@
+# cloudbuild.yaml
+
+steps:
+  # Step 1: Checkout code from your Git repository
+  - name: 'gcr.io/cloud-builders/git'
+    id: 'checkout'
+    args:
+      [
+        'clone',
+        '--progress',
+        '--recursive',
+        '--branch',
+        '$BRANCH_NAME',
+        '--single-branch',
+        '.',
+        '/workspace',
+      ]
+
+  # Step 2: Install dependencies
+  - name: 'node'
+    id: 'install'
+    entrypoint: 'npm'
+    args: ['install']
+
+  # Step 3: Build the application
+  - name: 'node'
+    id: 'build'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+
+  # Step 4: Run the tests (optional)
+  - name: 'node'
+    id: 'test'
+    entrypoint: 'npm'
+    args: ['run', 'test']
+
+  # Step 5: Deploy the application
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'deploy'
+    args: ['app', 'deploy']
+
+timeout: '800s'

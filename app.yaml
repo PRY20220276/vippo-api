@@ -1,0 +1,11 @@
+runtime: nodejs16
+
+env_variables:
+  NODE_ENV: production
+
+handlers:
+  - url: /.*
+    script: auto
+    secure: always
+
+service: vippo-api
