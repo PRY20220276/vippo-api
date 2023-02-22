@@ -1,6 +1,5 @@
-# cloudbuild.yaml
 steps:
-  - name: node
+  - name: node:16.19.1-alpine3.17
     entrypoint: npm
     args: ['install']
   - name: node
@@ -9,7 +8,12 @@ steps:
   - name: node
     entrypoint: npm
     args: ['run', 'build']
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args: ['app', 'deploy']
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      [
+        '-c',
+        'gcloud config set app/cloud_build_timeout 1600 && gcloud app deploy',
+      ]
 
-timeout: '800s'
+timeout: '1600s'
