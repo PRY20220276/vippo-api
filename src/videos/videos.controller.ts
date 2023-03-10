@@ -7,12 +7,14 @@ import {
   Param,
   Delete,
   UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { VideosService } from './videos.service';
-import { CreateVideoDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CurrentUser } from 'src/users/decorators/current-user.decorator';
+import { User } from '@prisma/client';
 
 @ApiTags('Videos')
 @Controller('videos')
@@ -20,28 +22,26 @@ export class VideosController {
   constructor(private readonly videosService: VideosService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
-  create(@Body() createVideoDto: CreateVideoDto) {
-    return this.videosService.create(createVideoDto);
+  @UseInterceptors(FileInterceptor('video'))
+  create(
+    @CurrentUser() user: User,
+    @UploadedFile() videoFile: Express.Multer.File,
+  ) {
+    return this.videosService.create(user.id, videoFile);
   }
 
   @Get()
-  findAll() {
-    return this.videosService.findAll();
+  findAll(@CurrentUser() user: User) {
+    return this.videosService.findAll(user.id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.videosService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVideoDto: UpdateVideoDto) {
-    return this.videosService.update(+id, updateVideoDto);
+  findOne(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.videosService.findOne(user.id, +id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.videosService.remove(+id);
+  remove(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.videosService.remove(user.id, +id);
   }
 }

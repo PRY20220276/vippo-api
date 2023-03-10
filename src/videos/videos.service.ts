@@ -1,26 +1,41 @@
 import { Injectable } from '@nestjs/common';
-import { CreateVideoDto } from './dto/create-video.dto';
-import { UpdateVideoDto } from './dto/update-video.dto';
+import { PrismaService } from '../shared/services/prisma.service';
+import { VideoUploadService } from '../shared/services/video-upload.service';
 
 @Injectable()
 export class VideosService {
-  create(createVideoDto: CreateVideoDto) {
-    return 'This action adds a new video';
+  constructor(
+    private readonly videoUploadService: VideoUploadService,
+    private readonly prismaService: PrismaService,
+  ) {}
+  async create(userId: number, videoFile: Express.Multer.File) {
+    // Write the code here
+    const videoUrl = await this.videoUploadService.uploadVideo(videoFile);
+    const video = await this.prismaService.video.create({
+      data: {
+        bucket: 'vippo-bucket-media-dev',
+        name: '',
+        contentType: videoFile.mimetype,
+        path: videoUrl,
+        owner: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
+    });
+    return video;
   }
 
-  findAll() {
+  findAll(userId: number) {
     return `This action returns all videos`;
   }
 
-  findOne(id: number) {
+  findOne(userId: number, id: number) {
     return `This action returns a #${id} video`;
   }
 
-  update(id: number, updateVideoDto: UpdateVideoDto) {
-    return `This action updates a #${id} video`;
-  }
-
-  remove(id: number) {
+  remove(userId: number, id: number) {
     return `This action removes a #${id} video`;
   }
 }

@@ -5,7 +5,7 @@ import { VideoUploadService } from './services/video-upload.service';
 
 @Global()
 @Module({
-  exports: [PrismaService],
+  exports: [PrismaService, VideoUploadService],
   providers: [PrismaService, VideoUploadService, VideoAnalysisService],
 })
 export class SharedModule {}
