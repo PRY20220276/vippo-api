@@ -10,34 +10,25 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { AnalysisService } from './analysis.service';
 import { CreateAnalysisDto } from './dtos/create-analysis.dto';
-import { UpdateAnalysisDto } from './dtos/update-analysis.dto';
 
-@ApiTags('Video Analysis')
-@Controller('videos/analysis')
+@ApiTags('Video Analysis Module')
+@Controller()
 export class AnalysisController {
   constructor(private readonly analysisService: AnalysisService) {}
 
-  @Post()
+  @Post('videos/:videoId/analysis')
   create(@Body() createAnalysisDto: CreateAnalysisDto) {
     return this.analysisService.create(createAnalysisDto);
   }
 
-  @Get()
+  @Get('videos/:videoId/analysis')
   findAll() {
     return this.analysisService.findAll();
   }
 
-  @Get(':id')
+  @Get('videos/:videoId/analysis/:id')
   findOne(@Param('id') id: string) {
     return this.analysisService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateAnalysisDto: UpdateAnalysisDto,
-  ) {
-    return this.analysisService.update(+id, updateAnalysisDto);
   }
 
   @Delete(':id')

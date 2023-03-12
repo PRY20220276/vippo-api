@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { Storage } from '@google-cloud/storage';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -12,24 +12,32 @@ export class VideoUploadService {
     this.bucketName = 'vippo-bucket-media-dev'; // Replace with your bucket name
   }
 
-  async uploadVideo(
-    file: Express.Multer.File,
-    userId: number,
-  ): Promise<string> {
+  async uploadVideo(file: Express.Multer.File, userId: number) {
     const uniqueId = uuidv4();
     const fileName = `${uniqueId}_${file.originalname}`;
     const bucket = this.storage.bucket(this.bucketName);
     const blob = bucket.file(fileName);
-
-    await blob.save(file.buffer, {
-      metadata: {
-        contentType: file.mimetype,
+    try {
+      await blob.save(file.buffer, {
         metadata: {
-          userId: userId,
+          contentType: file.mimetype,
+          metadata: {
+            userId: userId,
+          },
         },
-      },
-    });
+      });
+      // Make the uploaded file publicly accessible
+      // await blob.makePublic();
 
-    return `gs://${this.bucketName}/${fileName}`;
+      return {
+        path: `gs://${this.bucketName}/${fileName}`,
+        url: blob.publicUrl(),
+      };
+    } catch (err) {
+      console.log(err);
+      throw new ServiceUnavailableException(
+        'Something went wrong with the upload, try again later',
+      );
+    }
   }
 }

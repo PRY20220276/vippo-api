@@ -23,7 +23,7 @@ model User {
 model Video {
   id          Int      @id @default(autoincrement())
   name        String
-  description String?
+  url         String?
   bucket      String
   path        String
   contentType String?
