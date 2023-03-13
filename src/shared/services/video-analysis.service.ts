@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { VideoIntelligenceServiceClient } from '@google-cloud/video-intelligence';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class VideoAnalysisService {
     const [result] = await operation.promise();
 
     if (result.annotationResults.length === 0) {
-      throw new Error('No analysis results found.');
+      throw new BadRequestException('No analysis results found.');
     }
 
     const labels = result.annotationResults[0].segmentLabelAnnotations;

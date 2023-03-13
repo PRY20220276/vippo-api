@@ -1,11 +1,19 @@
 import { Injectable } from '@nestjs/common';
+import { VideosService } from '../videos/videos.service';
+import { VideoAnalysisService } from '../shared/services/video-analysis.service';
 import { CreateAnalysisDto } from './dtos/create-analysis.dto';
 import { UpdateAnalysisDto } from './dtos/update-analysis.dto';
 
 @Injectable()
 export class AnalysisService {
-  create(createAnalysisDto: CreateAnalysisDto) {
-    return 'This action adds a new analysis';
+  constructor(
+    private readonly videosService: VideosService,
+    private readonly videoAnalysisService: VideoAnalysisService,
+  ) {}
+  async create(ownerId: number, videoId: number) {
+    const video = await this.videosService.findOneByUserId(videoId, ownerId);
+    const summary = await this.videoAnalysisService.generateSummary(video.path);
+    return summary;
   }
 
   findAll() {

@@ -1,13 +1,7 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { User } from '@prisma/client';
+import { CurrentUser } from '../users/decorators/current-user.decorator';
 import { AnalysisService } from './analysis.service';
 import { CreateAnalysisDto } from './dtos/create-analysis.dto';
 
@@ -17,8 +11,8 @@ export class AnalysisController {
   constructor(private readonly analysisService: AnalysisService) {}
 
   @Post('videos/:videoId/analysis')
-  create(@Body() createAnalysisDto: CreateAnalysisDto) {
-    return this.analysisService.create(createAnalysisDto);
+  create(@Param('videoId') videoId: string, @CurrentUser() user: User) {
+    return this.analysisService.create(user.id, +videoId);
   }
 
   @Get('videos/:videoId/analysis')
@@ -26,12 +20,12 @@ export class AnalysisController {
     return this.analysisService.findAll();
   }
 
-  @Get('videos/:videoId/analysis/:id')
+  @Get('/analysis/:id')
   findOne(@Param('id') id: string) {
     return this.analysisService.findOne(+id);
   }
 
-  @Delete(':id')
+  @Delete('/analysis/:id')
   remove(@Param('id') id: string) {
     return this.analysisService.remove(+id);
   }
