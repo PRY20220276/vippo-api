@@ -40,7 +40,7 @@ export class VideosController {
 
   @Get(':id')
   findOne(@Param('id') id: string, @CurrentUser() user: User) {
-    return this.videosService.findOne(user.id, +id);
+    return this.videosService.findOneByUserId(+id, user.id);
   }
 
   @Delete(':id')

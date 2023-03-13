@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Video } from '@prisma/client';
 import { PaginationQueryDto } from '../shared/dtos/pagination-query.dto';
 import { PaginationResponseDto } from '../shared/dtos/pagination-response.dto';
@@ -69,8 +73,29 @@ export class VideosService {
     return new PaginationResponseDto(items, total, page, limit);
   }
 
-  findOne(userId: number, id: number) {
+  async findOne(id: number) {
+    const video = await this.prismaService.video.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (!video) {
+      throw new NotFoundException(`Video #${id} not found`);
+    }
     return `This action returns a #${id} video`;
+  }
+
+  async findOneByUserId(id: number, userId: number) {
+    const video = await this.prismaService.video.findFirst({
+      where: {
+        id: id,
+        ownerId: userId,
+      },
+    });
+    if (!video) {
+      throw new NotFoundException(`Video #${id} not found`);
+    }
+    return video;
   }
 
   remove(userId: number, id: number) {
