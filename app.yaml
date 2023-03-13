@@ -2,10 +2,3 @@ runtime: nodejs16
 
 env_variables:
   NODE_ENV: production
-
-automatic_scaling:
-  min_num_instances: 1
-  max_num_instances: 1
-  cpu_utilization:
-    target_utilization: 0.5
-  target_concurrent_requests: 10
