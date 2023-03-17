@@ -11,12 +11,10 @@ steps:
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
-      [
-        '-c',
-        'echo $'\n  JWT_SECRET: '$$JWT_SECRET >> app.yaml' \
-        '&& echo $'\n  DATABASE_URL: '$$DATABASE_URL >> app.yaml' \
-        '&& gcloud config set app/cloud_build_timeout 1600 && gcloud app deploy',
-      ]
+      - '-c'
+      - 'echo $'\n  JWT_SECRET: '$$JWT_SECRET >> app.yaml'
+      - 'echo $'\n  DATABASE_URL: '$$DATABASE_URL >> app.yaml'
+      - 'gcloud config set app/cloud_build_timeout 1600 && gcloud app deploy'
     secretEnv: ['JWT_SECRET', 'DATABASE_URL']
 timeout: '1600s'
 availableSecrets:
