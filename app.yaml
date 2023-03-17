@@ -2,3 +2,5 @@ runtime: nodejs16
 
 env_variables:
   NODE_ENV: production
+  JWT_SECRET: ''
+  DATABASE_URL: ''
