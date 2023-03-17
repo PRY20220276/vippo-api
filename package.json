@@ -24,6 +24,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@google-cloud/secret-manager": "^4.2.1",
     "@google-cloud/storage": "^6.9.3",
     "@google-cloud/video-intelligence": "^4.2.1",
     "@nestjs/common": "^9.0.0",
