@@ -12,7 +12,7 @@ export class SecretService {
   async getSecret(secretName: string): Promise<string> {
     if (process.env.NODE_ENV === 'production') {
       const [version] = await this.client.accessSecretVersion({
-        name: `projects/vippo-project/secrets/${secretName}/latest`,
+        name: `projects/vippo-project/secrets/${secretName}/versions/latest`,
       });
       return version.payload.data.toString();
     } else {

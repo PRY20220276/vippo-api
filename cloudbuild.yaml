@@ -3,7 +3,7 @@ steps:
   - name: node:16.19.1-alpine3.17
     entrypoint: npm
     args: ['install']
-  # Run custom commands
+  # Build the application
   - name: node
     entrypoint: npm
     args: ['run', 'build']
@@ -16,3 +16,9 @@ steps:
         'gcloud config set app/cloud_build_timeout 1600 && gcloud app deploy',
       ]
 timeout: '1600s'
+availableSecrets:
+  secretManager:
+    - versionName: projects/vippo-project/secrets/JWT_SECRET/versions/latest
+      env: 'JWT_SECRET'
+    - versionName: projects/vippo-project/secrets/DATABASE_URL/versions/latest
+      env: 'DATABASE_URL'

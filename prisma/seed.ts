@@ -4,14 +4,16 @@ import * as argon2 from 'argon2';
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = process.argv[2];
-  const password = process.argv[3];
+  const email = 'manriqueacham@gmail.com';
 
-  if (!email || !password) {
-    console.error(
-      'Please provide email and password as command line arguments',
-    );
-    process.exit(1);
+  // Check if user already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    console.log(`El usuario con correo ${email} ya existe`);
+    return;
   }
 
   const clientPassword = await argon2.hash('clientPassword');

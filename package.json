@@ -13,6 +13,7 @@
     "gcp-build": "tsc -p .",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/src/main",
+    "poststart": "npx prisma migrate deploy && ts-node prisma/seed.ts",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
