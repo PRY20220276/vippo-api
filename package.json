@@ -23,7 +23,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "commit": "git-cz"
   },
   "dependencies": {
     "@google-cloud/secret-manager": "^4.2.1",
@@ -95,5 +96,10 @@
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
   }
 }
