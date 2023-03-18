@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
-import { CurrentUser } from 'src/users/decorators/current-user.decorator';
+import { CurrentUser } from '../users/decorators/current-user.decorator';
 import { AuthService } from './auth.service';
 import { ExposedEndpoint } from './decorators/exposed-endpoint.decorator';
 import { ChangePasswordDto } from './dto/change-password.dto';
