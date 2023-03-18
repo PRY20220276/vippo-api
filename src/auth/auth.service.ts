@@ -1,8 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
-import { SignInEmailDto } from './dtos/sign-in-email.dto';
+import { SignInEmailDto } from './dto/sign-in-email.dto';
 import * as argon2 from 'argon2';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -28,9 +29,9 @@ export class AuthService {
       signInEmailDto.password,
     );
     /*
-		if (user.verified === false) {
-			throw new UnauthorizedException('Please verify your email');
-		}
+    if (user.verified === false) {
+      throw new UnauthorizedException('Please verify your email');
+    }
     */
     if (!isValidPassword) {
       throw new UnauthorizedException('Invalid credentials');
@@ -43,5 +44,24 @@ export class AuthService {
       authenticatedUser: user,
       accessToken: accessToken,
     };
+  }
+
+  async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
+    const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new UnauthorizedException('Invalid user id');
+    }
+    const isValidPassword = await argon2.verify(
+      user.password,
+      changePasswordDto.oldPassword,
+    );
+    if (!isValidPassword) {
+      throw new UnauthorizedException('Invalid password');
+    }
+    await this.usersService.updateUserPassword(
+      userId,
+      changePasswordDto.newPassword,
+    );
+    return { message: 'Password changed successfully' };
   }
 }

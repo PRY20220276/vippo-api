@@ -26,4 +26,20 @@ export class UsersService {
       },
     });
   }
+
+  findOne(id: number) {
+    return this.prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+    });
+  }
+
+  async updateUserPassword(userId: number, newPassword: string) {
+    const hashedNewPassword = await argon2.hash(newPassword);
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedNewPassword },
+    });
+  }
 }
