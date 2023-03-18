@@ -1,8 +1,11 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { User } from '@prisma/client';
+import { CurrentUser } from 'src/users/decorators/current-user.decorator';
 import { AuthService } from './auth.service';
 import { ExposedEndpoint } from './decorators/exposed-endpoint.decorator';
-import { SignInEmailDto } from './dtos/sign-in-email.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { SignInEmailDto } from './dto/sign-in-email.dto';
 
 @ApiTags('Auth Module')
 @Controller({
@@ -19,5 +22,24 @@ export class AuthController {
   @ExposedEndpoint()
   async loginEmail(@Body() signInEmailDto: SignInEmailDto) {
     return this.authService.signInWithEmail(signInEmailDto);
+  }
+
+  @ApiOperation({
+    summary: 'Change user password',
+  })
+  @Post('change-password')
+  async changePassword(
+    @CurrentUser() user: User,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(user.id, changePasswordDto);
+  }
+
+  @ApiOperation({
+    summary: 'Change user password',
+  })
+  @Get('user')
+  async getCurrentUser(@CurrentUser() user: User) {
+    return user;
   }
 }
