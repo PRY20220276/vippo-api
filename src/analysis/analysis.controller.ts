@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Post, Param, Delete } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { CurrentUser } from '../users/decorators/current-user.decorator';
 import { AnalysisService } from './analysis.service';
-import { CreateAnalysisDto } from './dtos/create-analysis.dto';
 
+@ApiBearerAuth()
 @ApiTags('Video Analysis Module')
 @Controller()
 export class AnalysisController {
