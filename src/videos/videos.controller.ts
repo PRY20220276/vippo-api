@@ -9,13 +9,14 @@ import {
   Query,
 } from '@nestjs/common';
 import { VideosService } from './videos.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from '../users/decorators/current-user.decorator';
 import { User, Video } from '@prisma/client';
-import { PaginationQueryDto } from '../shared/dtos/pagination-query.dto';
-import { PaginationResponseDto } from '../shared/dtos/pagination-response.dto';
+import { PaginationQueryDto } from '../shared/dto/pagination-query.dto';
+import { PaginationResponseDto } from '../shared/dto/pagination-response.dto';
 
+@ApiBearerAuth()
 @ApiTags('Videos')
 @Controller('videos')
 export class VideosController {

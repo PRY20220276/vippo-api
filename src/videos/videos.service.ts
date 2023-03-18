@@ -4,8 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Video } from '@prisma/client';
-import { PaginationQueryDto } from '../shared/dtos/pagination-query.dto';
-import { PaginationResponseDto } from '../shared/dtos/pagination-response.dto';
+import { PaginationQueryDto } from '../shared/dto/pagination-query.dto';
+import { PaginationResponseDto } from '../shared/dto/pagination-response.dto';
 import { PrismaService } from '../shared/services/prisma.service';
 import { VideoUploadService } from '../shared/services/video-upload.service';
 

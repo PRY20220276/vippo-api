@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { CurrentUser } from '../users/decorators/current-user.decorator';
 import { AuthService } from './auth.service';
@@ -24,6 +24,7 @@ export class AuthController {
     return this.authService.signInWithEmail(signInEmailDto);
   }
 
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Change user password',
   })
@@ -35,6 +36,7 @@ export class AuthController {
     return this.authService.changePassword(user.id, changePasswordDto);
   }
 
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Change user password',
   })
