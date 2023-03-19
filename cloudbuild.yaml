@@ -1,16 +1,33 @@
 steps:
   # Install dependencies
-  - id: Install
+  - id: install-deps
     name: node:16.19.1-alpine3.17
     entrypoint: npm
     args: ['install']
+  # Install Cloud SQL proxy
+  - id: proxy-install
+    name: gcr.io/cloud-builders/npm
+    entrypoint: sh
+    args:
+      - '-c'
+      - 'wget https://storage.googleapis.com/cloudsql-proxy/v1.20.1/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy && chmod +x cloud_sql_proxy'
+    waitFor: ['-']
+  # Migrate database schema to the latest version
+  - id: migrate-db
+    name: gcr.io/cloud-builders/npm
+    entrypoint: sh
+    args:
+      - '-c'
+      - '(./cloud_sql_proxy -dir=/cloudsql -instances=vippo-project:us-east1:vippo-db-postgresql-development & sleep 2) && npx prisma migrate deploy && npx prisma db seed'
+    timeout: '1200s'
+    waitFor: ['install-deps', 'proxy-install']
   # Build the application
-  - id: Build
+  - id: build-app
     name: node
     entrypoint: npm
     args: ['run', 'build']
   # Deploy to AppEngine
-  - id: Deploy
+  - id: deploy-app
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     secretEnv: ['JWT_SECRET', 'DATABASE_URL']
     entrypoint: 'bash'
