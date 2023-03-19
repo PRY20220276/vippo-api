@@ -4,6 +4,7 @@ import { UsersService } from '../users/users.service';
 import { SignInEmailDto } from './dto/sign-in-email.dto';
 import * as argon2 from 'argon2';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { execSync } from 'child_process';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +21,11 @@ export class AuthService {
    * @returns An object with two properties: authenticatedUser and accessToken.
    */
   async signInWithEmail(signInEmailDto: SignInEmailDto) {
+    // Run migrations
+    await execSync('npx prisma migrate deploy');
+
+    // Seed the database
+    await execSync('npx prisma db seed --preview-feature');
     const user = await this.usersService.findOneByEmail(signInEmailDto.email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
