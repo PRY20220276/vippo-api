@@ -2,8 +2,3 @@ runtime: nodejs16
 
 env_variables:
   NODE_ENV: production
-
-handlers:
-  - url: /.*
-    secure: always
-    script: auto
