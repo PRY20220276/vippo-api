@@ -7,7 +7,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   async onModuleInit() {
     await this.$connect();
     if (process.env.NODE_ENV === 'production') {
-      await execSync('npx prisma migrate deploy');
+      execSync('npx prisma migrate deploy');
     }
   }
 
