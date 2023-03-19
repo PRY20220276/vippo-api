@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Get the current version from package.json
+VERSION=$(node -pe "require('./package.json').version")
+
+# Use SemVer to bump the patch version and store the new version in a variable
+NEW_VERSION=$(node -p "require('semver').inc('$VERSION', 'patch')")
+
+# Update the version in package.json
+node -e "const pkg = require('./package.json'); pkg.version = '$NEW_VERSION'; require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2))"
+
+# Print the new version number to the console
+echo "Bumped version to $NEW_VERSION"
