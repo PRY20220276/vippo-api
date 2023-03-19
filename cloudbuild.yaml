@@ -10,15 +10,15 @@ steps:
     entrypoint: sh
     args:
       - '-c'
-      - 'curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.0.0/cloud-sql-proxy.linux.amd64 && chmod +x cloud-sql-proxy'
+      - 'curl -o /workspace/cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.0.0/cloud-sql-proxy.linux.amd64 && chmod +x cloud-sql-proxy'
     waitFor: ['-']
-  # Migrate database schema to the latest version
+  # Migrate database schema and seed
   - id: migrate-db
     name: gcr.io/cloud-builders/npm
     entrypoint: sh
     args:
       - '-c'
-      - '(./cloud_sql_proxy -dir=/cloudsql -instances=vippo-project:us-east1:vippo-db-postgresql-development & sleep 2) && npx prisma migrate deploy && npx prisma db seed'
+      - '(/workspace/cloud_sql_proxy vippo-project:us-east1:vippo-db-postgresql-development & sleep 2) && npx prisma migrate deploy && npx prisma db seed'
     timeout: '1200s'
     waitFor: ['install-deps', 'proxy-install']
     secretEnv: ['DATABASE_URL']
