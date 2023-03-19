@@ -10,7 +10,7 @@ steps:
     entrypoint: sh
     args:
       - '-c'
-      - 'wget https://storage.googleapis.com/cloudsql-proxy/v1.20.1/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy && chmod +x cloud_sql_proxy'
+      - 'curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.0.0/cloud-sql-proxy.linux.amd64 && chmod +x cloud-sql-proxy'
     waitFor: ['-']
   # Migrate database schema to the latest version
   - id: migrate-db
