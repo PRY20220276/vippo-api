@@ -7,7 +7,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   async onModuleInit() {
     await this.$connect();
     if (process.env.NODE_ENV === 'production') {
-      await this.runMigrationsAndSeed();
+      await execSync('npx prisma migrate deploy');
+      await execSync('npx prisma db seed');
     }
   }
 
@@ -15,13 +16,5 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     this.$on('beforeExit', async () => {
       await app.close();
     });
-  }
-
-  async runMigrationsAndSeed() {
-    // Run migrations
-    execSync('npx prisma migrate deploy');
-
-    // Seed the database
-    execSync('ts-node prisma/seed.ts');
   }
 }
