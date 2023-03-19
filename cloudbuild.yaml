@@ -1,14 +1,17 @@
 steps:
   # Install dependencies
-  - name: node:16.19.1-alpine3.17
+  - id: Install
+    name: node:16.19.1-alpine3.17
     entrypoint: npm
     args: ['install']
   # Build the application
-  - name: node
+  - id: Build
+    name: node
     entrypoint: npm
     args: ['run', 'build']
   # Deploy to AppEngine
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  - id: Deploy
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     secretEnv: ['JWT_SECRET', 'DATABASE_URL']
     entrypoint: 'bash'
     args:
