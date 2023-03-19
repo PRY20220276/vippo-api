@@ -1,6 +1,6 @@
 {
   "name": "vippo-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "author": "MarcoMnrq",
   "private": false,
@@ -104,7 +104,7 @@
   },
   "husky": {
     "hooks": {
-      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
+      "prepare-commit-msg": "exec < /dev/tty && node -e \"require('semver').inc(require('./package.json').version, process.env.npm_config_commit_msg || 'patch', function(err, version) { console.log(version); require('fs').writeFileSync('./package.json', JSON.stringify(Object.assign(require('./package.json'), {version: version}), null, 2)) })\" .git/COMMIT_EDITMSG",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   }
