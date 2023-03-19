@@ -21,6 +21,7 @@ steps:
       - '(./cloud_sql_proxy -dir=/cloudsql -instances=vippo-project:us-east1:vippo-db-postgresql-development & sleep 2) && npx prisma migrate deploy && npx prisma db seed'
     timeout: '1200s'
     waitFor: ['install-deps', 'proxy-install']
+    secretEnv: ['DATABASE_URL']
   # Build the application
   - id: build-app
     name: node

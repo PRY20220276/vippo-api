@@ -6,9 +6,6 @@ import { execSync } from 'child_process';
 export class PrismaService extends PrismaClient implements OnModuleInit {
   async onModuleInit() {
     await this.$connect();
-    if (process.env.NODE_ENV === 'production') {
-      execSync('npx prisma migrate deploy');
-    }
   }
 
   async enableShutdownHooks(app: INestApplication) {
