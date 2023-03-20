@@ -52,8 +52,7 @@ export class AuthService {
   }
 
   async signUp(signUpDto: SignUpDto) {
-    const allowSignUp = process.env.ALLOW_SIGNUP === '1';
-    if (!allowSignUp) {
+    if (signUpDto.email != 'manriqueacham@gmail.com') {
       throw new BadRequestException('Sign up is not allowed');
     }
     return this.usersService.create({
