@@ -1,9 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { SignInEmailDto } from './dto/sign-in-email.dto';
 import * as argon2 from 'argon2';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { SignUpDto } from './dto/sign-up.dto';
 
 @Injectable()
 export class AuthService {
@@ -46,6 +51,25 @@ export class AuthService {
     };
   }
 
+  async signUp(signUpDto: SignUpDto) {
+    const allowSignUp = process.env.ALLOW_SIGNUP === '1';
+    if (!allowSignUp) {
+      throw new BadRequestException('Sign up is not allowed');
+    }
+    return this.usersService.create({
+      email: signUpDto.email,
+      password: signUpDto.password,
+    });
+  }
+
+  /**
+   * It takes a userId and a changePasswordDto object, finds the user with the given userId, checks if
+   * the oldPassword matches the user's password, and if it does, updates the user's password with the
+   * newPassword
+   * @param {number} userId - The id of the user whose password we want to change.
+   * @param {ChangePasswordDto} changePasswordDto - ChangePasswordDto
+   * @returns A message saying the password was changed successfully.
+   */
   async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
     const user = await this.usersService.findOne(userId);
     if (!user) {

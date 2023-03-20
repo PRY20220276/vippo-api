@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { ExposedEndpoint } from './decorators/exposed-endpoint.decorator';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { SignInEmailDto } from './dto/sign-in-email.dto';
+import { SignUpDto } from './dto/sign-up.dto';
 
 @ApiTags('Auth Module')
 @Controller({
@@ -22,6 +23,15 @@ export class AuthController {
   @ExposedEndpoint()
   async loginEmail(@Body() signInEmailDto: SignInEmailDto) {
     return this.authService.signInWithEmail(signInEmailDto);
+  }
+
+  @ApiOperation({
+    summary: 'Create a new account',
+  })
+  @Post('register')
+  @ExposedEndpoint()
+  async register(@Body() signUpDto: SignUpDto) {
+    return this.authService.signUp(signUpDto);
   }
 
   @ApiBearerAuth()
