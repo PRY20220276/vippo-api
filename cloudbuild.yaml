@@ -4,18 +4,6 @@ steps:
     name: node:16.19.1-alpine3.17
     entrypoint: npm
     args: ['install']
-  # Migrate database schema and seed
-  - id: migrate-db
-    name: gcr.io/cloud-builders/npm
-    entrypoint: sh
-    args:
-      - '-c'
-      - |
-        wget https://storage.googleapis.com/cloudsql-proxy/v1.23.0/cloud_sql_proxy.linux.amd64 -O /workspace/cloud_sql_proxy && chmod +x /workspace/cloud_sql_proxy
-        (./workspace/cloud_sql_proxy -dir=/workspace -instances=vippo-project:us-east1:vippo-db-postgresql-development & sleep 2) && DATABASE_URL=$$DATABASE_URL npx prisma migrate deploy && DATABASE_URL=$$DATABASE_URL npx prisma db seed
-    timeout: '1200s'
-    waitFor: ['install-deps']
-    secretEnv: ['DATABASE_URL']
   # Build the application
   - id: build-app
     name: node
