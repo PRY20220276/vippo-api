@@ -33,11 +33,7 @@ export class AuthService {
       user.password,
       signInEmailDto.password,
     );
-    /*
-    if (user.verified === false) {
-      throw new UnauthorizedException('Please verify your email');
-    }
-    */
+
     if (!isValidPassword) {
       throw new UnauthorizedException('Invalid credentials');
     }

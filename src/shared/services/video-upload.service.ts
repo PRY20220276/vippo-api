@@ -4,17 +4,16 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class VideoUploadService {
-  private storage: Storage;
-  private bucketName: string;
+  private readonly storage: Storage;
+  private readonly bucketName: string;
 
   constructor() {
     this.storage = new Storage();
-    this.bucketName = 'vippo-bucket-media-dev'; // Replace with your bucket name
+    this.bucketName = 'vippo-bucket-media-dev';
   }
 
   async uploadVideo(file: Express.Multer.File, userId: number) {
-    const uniqueId = uuidv4();
-    const fileName = `${uniqueId}_${file.originalname}`;
+    const fileName = uuidv4();
     const bucket = this.storage.bucket(this.bucketName);
     const blob = bucket.file(fileName);
     try {
@@ -26,17 +25,29 @@ export class VideoUploadService {
           },
         },
       });
-      // Make the uploaded file publicly accessible
-      // await blob.makePublic();
 
       return {
         path: `gs://${this.bucketName}/${fileName}`,
         url: blob.publicUrl(),
+        fileName: fileName,
       };
     } catch (err) {
       console.log(err);
       throw new ServiceUnavailableException(
         'Something went wrong with the upload, try again later',
+      );
+    }
+  }
+
+  async deleteVideo(fileName: string): Promise<void> {
+    const bucket = this.storage.bucket(this.bucketName);
+    const blob = bucket.file(fileName);
+    try {
+      await blob.delete();
+    } catch (err) {
+      console.log(err);
+      throw new ServiceUnavailableException(
+        'Something went wrong with the delete operation, try again later',
       );
     }
   }
