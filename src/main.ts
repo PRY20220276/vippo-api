@@ -7,7 +7,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   // CORS configuration
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: [
+      'http://localhost:3000',
+      'https://app.vippo.space',
+      'https://vippo.netlify.app',
+    ],
   });
   // Versioning
   app.enableVersioning({
