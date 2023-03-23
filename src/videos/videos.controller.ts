@@ -7,6 +7,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Query,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { VideosService } from './videos.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -19,6 +20,7 @@ import { PaginationResponseDto } from '../shared/dto/pagination-response.dto';
 @ApiBearerAuth()
 @ApiTags('Videos')
 @Controller('videos')
+@UseInterceptors(ClassSerializerInterceptor)
 export class VideosController {
   constructor(private readonly videosService: VideosService) {}
 

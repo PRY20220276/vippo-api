@@ -75,7 +75,7 @@ export class VideosService {
         ownerId: userId,
       },
     });
-    this.logger.debug(`Retrieved ${items.length} videos for user #${userId}`);
+    this.logger.log(`Retrieved ${items.length} videos for user #${userId}`);
 
     return new PaginationResponseDto(items, total, page, limit);
   }
@@ -90,7 +90,7 @@ export class VideosService {
     if (!video) {
       throw new NotFoundException(`Video #${id} not found`);
     }
-    this.logger.debug(`Retrieved video #${id}`);
+    this.logger.log(`Retrieved video #${id}`);
     return video;
   }
 
@@ -106,7 +106,7 @@ export class VideosService {
       throw new NotFoundException(`Video #${id} not found`);
     }
 
-    this.logger.debug(`Retrieved video #${id} with owner #${userId}`);
+    this.logger.log(`Retrieved video #${id} with owner #${userId}`);
 
     return video;
   }
