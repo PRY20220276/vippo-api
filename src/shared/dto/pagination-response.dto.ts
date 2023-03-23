@@ -1,7 +1,7 @@
+import { Expose } from 'class-transformer';
+
 export class PaginationResponseDto<T> {
   items: T[];
-
-  total: number;
 
   page: number;
 
@@ -11,16 +11,19 @@ export class PaginationResponseDto<T> {
 
   hasPrev: boolean;
 
+  totalItems: number;
+
   constructor(items: T[], total: number, page: number, limit: number) {
     this.items = items;
-    this.total = total;
+    this.totalItems = total;
     this.page = page;
     this.limit = limit;
     this.hasNext = page * limit < total;
     this.hasPrev = page > 1;
   }
 
+  @Expose()
   get totalPages(): number {
-    return Math.ceil(this.total / this.limit);
+    return Math.ceil(this.totalItems / this.limit);
   }
 }

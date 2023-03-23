@@ -1,5 +1,7 @@
 # 🚀 VIPPO REST API
 
+[![CodeQL](https://github.com/PRY20220276/vippo-api/actions/workflows/codeql.yml/badge.svg)](https://github.com/PRY20220276/vippo-api/actions/workflows/codeql.yml)
+
 This project is built using Node.js, Nest.js, and PostgreSQL, ensuring fast and efficient data handling. The different modules have been thoroughly tested and secure, ensuring that sensitive information is always protected.
 
 ## 🌟 Features

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { Video } from '@prisma/client';
 import { PaginationQueryDto } from '../shared/dto/pagination-query.dto';
@@ -11,11 +12,13 @@ import { VideoUploadService } from '../shared/services/video-upload.service';
 
 @Injectable()
 export class VideosService {
+  private readonly logger = new Logger(VideosService.name);
   constructor(
     private readonly videoUploadService: VideoUploadService,
     private readonly prismaService: PrismaService,
   ) {}
   async create(userId: number, videoFile: Express.Multer.File) {
+    this.logger.log(`Creating video for user ${userId}`);
     const totalSize = await this.prismaService.video.aggregate({
       _sum: { size: true },
       where: { ownerId: userId },
@@ -33,7 +36,8 @@ export class VideosService {
     const video = await this.prismaService.video.create({
       data: {
         bucket: 'vippo-bucket-media-dev',
-        name: videoFile.originalname,
+        originalName: videoFile.originalname,
+        fileName: uploadedVideo.fileName,
         contentType: videoFile.mimetype,
         size: videoFile.size,
         path: uploadedVideo.path,
@@ -45,6 +49,7 @@ export class VideosService {
         },
       },
     });
+    this.logger.log(`Video created successfully for user ${userId}`);
 
     return video;
   }
@@ -70,6 +75,8 @@ export class VideosService {
         ownerId: userId,
       },
     });
+    this.logger.log(`Retrieved ${items.length} videos for user #${userId}`);
+
     return new PaginationResponseDto(items, total, page, limit);
   }
 
@@ -79,10 +86,12 @@ export class VideosService {
         id: id,
       },
     });
+
     if (!video) {
       throw new NotFoundException(`Video #${id} not found`);
     }
-    return `This action returns a #${id} video`;
+    this.logger.log(`Retrieved video #${id}`);
+    return video;
   }
 
   async findOneByUserId(id: number, userId: number) {
@@ -92,13 +101,24 @@ export class VideosService {
         ownerId: userId,
       },
     });
+
     if (!video) {
       throw new NotFoundException(`Video #${id} not found`);
     }
+
+    this.logger.log(`Retrieved video #${id} with owner #${userId}`);
+
     return video;
   }
 
-  remove(userId: number, id: number) {
-    return `This action removes a #${id} video`;
+  async remove(id: number, userId: number) {
+    const video = await this.findOneByUserId(id, userId);
+    await this.videoUploadService.deleteVideo(video.fileName);
+    const deletedVideo = await this.prismaService.video.delete({
+      where: {
+        id: id,
+      },
+    });
+    return deletedVideo;
   }
 }

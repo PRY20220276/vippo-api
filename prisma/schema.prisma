@@ -21,15 +21,16 @@ model User {
 }
 
 model Video {
-  id          Int      @id @default(autoincrement())
-  name        String
-  url         String?
-  bucket      String
-  path        String
-  contentType String?
-  size        Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  originalName String   @default(value: "original")
+  fileName     String   @default(value: "name")
+  url          String?
+  bucket       String
+  path         String
+  contentType  String?
+  size         Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // add a relation to User
   owner   User @relation(fields: [ownerId], references: [id])
