@@ -13,6 +13,7 @@ export class AnalysisService {
   ) {}
 
   async create(ownerId: number, videoId: number) {
+    /*
     const existingAnalysis = await this.prismaService.videoAnalysis.findFirst({
       where: {
         video: {
@@ -25,6 +26,19 @@ export class AnalysisService {
     if (existingAnalysis) {
       throw new BadRequestException('Analysis already performed');
     }
+    const analysis = await this.prismaService.videoAnalysis.create({
+      data: {
+        labels: labels,
+        transcript: transcript,
+        explicitContent: explicitContent,
+        video: {
+          connect: {
+            id: video.id,
+          },
+        },
+      },
+    });
+    */
 
     const video = await this.videosService.findOneByUserId(videoId, ownerId);
 
@@ -39,20 +53,11 @@ export class AnalysisService {
       annotationResults.explicitAnnotation,
     );
 
-    const analysis = await this.prismaService.videoAnalysis.create({
-      data: {
-        labels: labels,
-        transcript: transcript,
-        explicitContent: explicitContent,
-        video: {
-          connect: {
-            id: video.id,
-          },
-        },
-      },
-    });
-
-    return analysis;
+    return {
+      labels,
+      transcript,
+      explicitContent,
+    };
   }
 
   findAll() {
