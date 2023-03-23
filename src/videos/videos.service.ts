@@ -49,6 +49,7 @@ export class VideosService {
         },
       },
     });
+
     this.logger.log(`Video created successfully for user ${userId}`);
 
     return video;
@@ -68,6 +69,7 @@ export class VideosService {
       skip: (page - 1) * limit,
       include: {
         owner: true,
+        videoAnalysis: true,
       },
     });
     const total = await this.prismaService.video.count({
@@ -99,6 +101,10 @@ export class VideosService {
       where: {
         id: id,
         ownerId: userId,
+      },
+      include: {
+        owner: true,
+        videoAnalysis: true,
       },
     });
 
