@@ -35,4 +35,21 @@ model Video {
   // add a relation to User
   owner   User @relation(fields: [ownerId], references: [id])
   ownerId Int
+
+  // add a relation to VideoAnalysis
+  videoAnalysis VideoAnalysis?
+}
+
+model VideoAnalysis {
+  id              Int   @id @default(autoincrement())
+  labels          Json?
+  transcript      Json?
+  explicitContent Json?
+  summary         Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  video   Video @relation(fields: [videoId], references: [id])
+  videoId Int   @unique
 }

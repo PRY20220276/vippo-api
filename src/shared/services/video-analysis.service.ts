@@ -15,6 +15,34 @@ export class VideoAnalysisService {
    * @param {string} gcsUri - The URI of the video stored in Google Cloud Storage.
    * @returns A string containing a summary of the video based on the labels
    */
+  async generateAnnotations(gcsUri: string) {
+    const videoContext = {
+      speechTranscriptionConfig: {
+        languageCode: 'en-US',
+        enableAutomaticPunctuation: true,
+      },
+    };
+
+    const [operation] = await this.client.annotateVideo({
+      inputUri: gcsUri,
+      features: [1, 6, 3],
+      videoContext: videoContext,
+    });
+
+    const [operationResult] = await operation.promise();
+
+    // Gets annotations for video
+    const annotationResults = operationResult.annotationResults[0];
+
+    return annotationResults;
+  }
+
+  /**
+   * It takes a GCS URI, sends it to the Cloud Video Intelligence API, and returns a summary of the
+   * video based on the labels
+   * @param {string} gcsUri - The URI of the video stored in Google Cloud Storage.
+   * @returns A string containing a summary of the video based on the labels
+   */
   async generateSummary(gcsUri: string): Promise<string> {
     const [operation] = await this.client.annotateVideo({
       inputUri: gcsUri,
