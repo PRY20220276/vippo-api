@@ -69,7 +69,6 @@ export class VideosService {
       skip: (page - 1) * limit,
       include: {
         owner: true,
-        videoAnalysis: true,
       },
     });
     const total = await this.prismaService.video.count({
@@ -104,7 +103,6 @@ export class VideosService {
       },
       include: {
         owner: true,
-        videoAnalysis: true,
       },
     });
 
