@@ -4,11 +4,13 @@ import {
   NotFoundException,
   Logger,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Video } from '@prisma/client';
 import { PaginationQueryDto } from '../shared/dto/pagination-query.dto';
 import { PaginationResponseDto } from '../shared/dto/pagination-response.dto';
 import { PrismaService } from '../shared/services/prisma.service';
 import { VideoUploadService } from '../shared/services/video-upload.service';
+import { VideoCreatedEvent } from './events/video-created.event';
 
 @Injectable()
 export class VideosService {
@@ -16,6 +18,7 @@ export class VideosService {
   constructor(
     private readonly videoUploadService: VideoUploadService,
     private readonly prismaService: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
   async create(userId: number, videoFile: Express.Multer.File) {
     this.logger.log(`Creating video for user ${userId}`);
@@ -49,6 +52,11 @@ export class VideosService {
         },
       },
     });
+    const videoCreatedEvent = new VideoCreatedEvent();
+    videoCreatedEvent.gcsUri = video.path;
+    videoCreatedEvent.userId = userId;
+    videoCreatedEvent.videoId = video.id;
+    this.eventEmitter.emit('video.created', videoCreatedEvent);
 
     this.logger.log(`Video created successfully for user ${userId}`);
 
@@ -103,6 +111,7 @@ export class VideosService {
       },
       include: {
         owner: true,
+        videoAnalysis: true,
       },
     });
 

@@ -6,9 +6,11 @@ import { VideosModule } from './videos/videos.module';
 import { AnalysisModule } from './analysis/analysis.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     SharedModule,
     AuthModule,
     UsersModule,
