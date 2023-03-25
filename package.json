@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "nest build",
-    "gcp-build": "tsc -p .",
+    "gcp-build": "npm run build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/src/main",
     "start:dev": "nest start --watch",
