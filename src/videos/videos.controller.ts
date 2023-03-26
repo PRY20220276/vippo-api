@@ -19,7 +19,7 @@ import { PaginationResponseDto } from '../shared/dto/pagination-response.dto';
 
 @ApiBearerAuth()
 @ApiTags('Videos')
-@Controller('videos')
+@Controller('me/videos')
 @UseInterceptors(ClassSerializerInterceptor)
 export class VideosController {
   constructor(private readonly videosService: VideosService) {}
@@ -41,6 +41,17 @@ export class VideosController {
     summary: 'Retrieve all of your videos in your personal drive',
   })
   findAll(
+    @Query() paginationQueryDto: PaginationQueryDto,
+    @CurrentUser() user: User,
+  ): Promise<PaginationResponseDto<Video>> {
+    return this.videosService.findAll(paginationQueryDto, user.id);
+  }
+
+  @Get('search')
+  @ApiOperation({
+    summary: 'Search for different videos in your personal drive',
+  })
+  search(
     @Query() paginationQueryDto: PaginationQueryDto,
     @CurrentUser() user: User,
   ): Promise<PaginationResponseDto<Video>> {
