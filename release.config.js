@@ -13,6 +13,7 @@ module.exports = {
     ],
   ],
   preset: 'conventionalcommits',
+  branches: ['main'],
   release: {
     branches: ['main'],
   },
