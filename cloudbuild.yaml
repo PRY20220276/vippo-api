@@ -1,12 +1,12 @@
 steps:
   # Install dependencies
   - id: install-deps
-    name: node:16.19.1-alpine3.17
+    name: node:18
     entrypoint: npm
     args: ['install']
   # Build the application
   - id: build-app
-    name: node
+    name: node:18
     entrypoint: npm
     args: ['run', 'build']
   # Deploy to AppEngine
