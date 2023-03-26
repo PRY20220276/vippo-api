@@ -10,6 +10,7 @@ import { PaginationQueryDto } from '../shared/dto/pagination-query.dto';
 import { PaginationResponseDto } from '../shared/dto/pagination-response.dto';
 import { PrismaService } from '../shared/services/prisma.service';
 import { VideoUploadService } from '../shared/services/video-upload.service';
+import { SearchVideoQueryDto } from './dto/search-video-query.dto';
 import { VideoCreatedEvent } from './events/video-created.event';
 
 @Injectable()
@@ -77,6 +78,7 @@ export class VideosService {
       skip: (page - 1) * limit,
       include: {
         owner: true,
+        videoAnalysis: true,
       },
     });
     const total = await this.prismaService.video.count({
@@ -87,6 +89,63 @@ export class VideosService {
     this.logger.log(`Retrieved ${items.length} videos for user #${userId}`);
 
     return new PaginationResponseDto(items, total, page, limit);
+  }
+
+  async search(
+    searchVideoQueryDto: SearchVideoQueryDto,
+    userId: number,
+  ): Promise<PaginationResponseDto<Video>> {
+    const limit = searchVideoQueryDto.limit || 10;
+    const page = searchVideoQueryDto.page || 1;
+    const items = await this.prismaService.video.findMany({
+      where: {
+        ownerId: userId,
+      },
+      take: limit,
+      skip: (page - 1) * limit,
+      include: {
+        owner: true,
+        videoAnalysis: true,
+      },
+    });
+    const total = await this.prismaService.video.count({
+      where: {
+        ownerId: userId,
+      },
+    });
+    this.logger.log(`Retrieved ${items.length} videos for user #${userId}`);
+
+    return new PaginationResponseDto(items, total, page, limit);
+  }
+
+  async stats(userId: number) {
+    const total = await this.prismaService.video.count({
+      where: {
+        ownerId: userId,
+      },
+    });
+
+    const totalSize = await this.prismaService.video.aggregate({
+      _sum: { size: true },
+      where: { ownerId: userId },
+    });
+
+    const usedSize = totalSize._sum.size;
+    const maxSize = 1000000000;
+    const usedGB = (usedSize / 1000000000).toFixed(2) + 'GB';
+    const maxGB = (maxSize / 1000000000).toFixed(2) + 'GB';
+    const usedPercentage = ((usedSize / maxSize) * 100).toFixed(2) + '%';
+
+    this.logger.log(`Retrieved stats videos for user #${userId}`);
+
+    return {
+      countStorageItems: total,
+      totalStorageUsed: usedSize,
+      maxStorageSize: maxSize,
+      percentageStorageUsed: usedPercentage,
+      usedGB: usedGB,
+      maxGB: maxGB,
+    };
   }
 
   async findOne(id: number) {
