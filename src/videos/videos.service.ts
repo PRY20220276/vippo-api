@@ -135,6 +135,10 @@ export class VideosService {
     const usedGB = (usedSize / 1000000000).toFixed(2) + 'GB';
     const maxGB = (maxSize / 1000000000).toFixed(2) + 'GB';
     const usedPercentage = ((usedSize / maxSize) * 100).toFixed(2) + '%';
+    const freePercentage =
+      (((maxSize - usedSize) / maxSize) * 100).toFixed(2) + '%';
+
+    const freeSpaceGb = ((maxSize - usedSize) / maxSize).toFixed(2) + 'GB';
 
     this.logger.log(`Retrieved stats videos for user #${userId}`);
 
@@ -143,7 +147,9 @@ export class VideosService {
       totalStorageUsed: usedSize,
       maxStorageSize: maxSize,
       percentageStorageUsed: usedPercentage,
+      percentageStorageFree: freePercentage,
       usedGB: usedGB,
+      freeGB: freeSpaceGb,
       maxGB: maxGB,
     };
   }
