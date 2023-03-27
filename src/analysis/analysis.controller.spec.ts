@@ -1,4 +1,9 @@
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from '../shared/services/prisma.service';
+import { VideoAnalysisService } from '../shared/services/video-analysis.service';
+import { VideoUploadService } from '../shared/services/video-upload.service';
+import { VideosService } from '../videos/videos.service';
 import { AnalysisController } from './analysis.controller';
 import { AnalysisService } from './analysis.service';
 
@@ -8,7 +13,14 @@ describe('AnalysisController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AnalysisController],
-      providers: [AnalysisService],
+      providers: [
+        AnalysisService,
+        VideosService,
+        VideoAnalysisService,
+        VideoUploadService,
+        PrismaService,
+        EventEmitter2,
+      ],
     }).compile();
 
     controller = module.get<AnalysisController>(AnalysisController);

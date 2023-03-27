@@ -1,19 +1,31 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../shared/services/prisma.service';
-import { VideoUploadService } from 'src/shared/services/video-upload.service';
+import { PrismaClient } from '@prisma/client';
 import { VideosService } from './videos.service';
+import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
+import { PrismaService } from '../shared/services/prisma.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { VideoUploadService } from '../shared/services/video-upload.service';
 
 describe('VideosService', () => {
   let service: VideosService;
-  let prismaService: PrismaService;
+  let prismaService: DeepMockProxy<PrismaClient>;
   let videoUploadService: VideoUploadService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [VideosService],
-    }).compile();
+      providers: [
+        VideosService,
+        PrismaService,
+        VideoUploadService,
+        EventEmitter2,
+      ],
+    })
+      .overrideProvider(PrismaService)
+      .useValue(mockDeep<PrismaClient>())
+      .compile();
 
     service = module.get<VideosService>(VideosService);
+    prismaService = module.get(PrismaService);
   });
 
   it('should be defined', () => {
