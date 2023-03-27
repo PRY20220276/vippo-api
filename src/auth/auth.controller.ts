@@ -48,15 +48,15 @@ export class AuthController {
   })
   @Post('change-password')
   async changePassword(
-    @CurrentUser() user: User,
     @Body() changePasswordDto: ChangePasswordDto,
+    @CurrentUser() user: User,
   ) {
     return this.authService.changePassword(user.id, changePasswordDto);
   }
 
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Change user password',
+    summary: 'Get current user',
   })
   @Get('user')
   async getCurrentUser(@CurrentUser() user: User) {
