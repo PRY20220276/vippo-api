@@ -11,6 +11,7 @@ import { PaginationResponseDto } from '../shared/dto/pagination-response.dto';
 import { PrismaService } from '../shared/services/prisma.service';
 import { VideoUploadService } from '../shared/services/video-upload.service';
 import { SearchVideoQueryDto } from './dto/search-video-query.dto';
+import { VideoDto } from './dto/video.dto';
 import { VideoCreatedEvent } from './events/video-created.event';
 
 @Injectable()
@@ -61,7 +62,7 @@ export class VideosService {
 
     this.logger.log(`Video created successfully for user ${userId}`);
 
-    return video;
+    return VideoDto.fromPlain(video);
   }
 
   async findAll(
