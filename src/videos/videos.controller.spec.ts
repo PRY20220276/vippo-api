@@ -1,7 +1,7 @@
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../shared/services/prisma.service';
-import { VideoUploadService } from '../shared/services/video-upload.service';
+import { PrismaService } from '../shared/prisma.service';
+import { VideoUploadService } from '../shared/video-upload.service';
 import { VideosController } from './videos.controller';
 import { VideosService } from './videos.service';
 

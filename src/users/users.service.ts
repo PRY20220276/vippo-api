@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../shared/services/prisma.service';
+import { PrismaService } from '../shared/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as argon2 from 'argon2';
 import { User } from '@prisma/client';

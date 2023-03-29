@@ -8,6 +8,8 @@ import {
   UploadedFile,
   Query,
   ClassSerializerInterceptor,
+  ParseFilePipeBuilder,
+  HttpStatus,
 } from '@nestjs/common';
 import { VideosService } from './videos.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -32,7 +34,19 @@ export class VideosController {
   })
   create(
     @CurrentUser() user: User,
-    @UploadedFile() videoFile: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: 'video',
+        })
+        .addMaxSizeValidator({
+          maxSize: 20 * 1024 * 1024, // 20MB
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    videoFile: Express.Multer.File,
   ) {
     return this.videosService.create(user.id, videoFile);
   }

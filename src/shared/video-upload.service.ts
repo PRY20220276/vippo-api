@@ -13,7 +13,8 @@ export class VideoUploadService {
   }
 
   async uploadVideo(file: Express.Multer.File, userId: number) {
-    const fileName = uuidv4();
+    const extension = file.originalname.split('.').pop();
+    const fileName = `${uuidv4()}.${extension}`;
     const bucket = this.storage.bucket(this.bucketName);
     const blob = bucket.file(fileName);
     try {

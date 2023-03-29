@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { VideosService } from '../videos/videos.service';
-import { VideoAnalysisService } from '../shared/services/video-analysis.service';
+import { VideoAnalysisService } from '../shared/video-analysis.service';
 import { UpdateAnalysisDto } from './dtos/update-analysis.dto';
-import { PrismaService } from '../shared/services/prisma.service';
+import { PrismaService } from '../shared/prisma.service';
 import { OnEvent } from '@nestjs/event-emitter';
 import { VideoCreatedEvent } from '../videos/events/video-created.event';
 
