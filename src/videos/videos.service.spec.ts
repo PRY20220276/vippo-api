@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaClient } from '@prisma/client';
 import { VideosService } from './videos.service';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
-import { PrismaService } from '../shared/services/prisma.service';
+import { PrismaService } from '../shared/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { VideoUploadService } from '../shared/services/video-upload.service';
+import { VideoUploadService } from '../shared/video-upload.service';
 
 describe('VideosService', () => {
   let service: VideosService;

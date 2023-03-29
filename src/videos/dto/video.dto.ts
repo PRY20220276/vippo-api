@@ -35,7 +35,7 @@ export class VideoDto {
     video.size = plain.size;
     video.path = plain.path;
     video.url = plain.url;
-    video.ownerId = plain.owner.id;
+    video.ownerId = plain.ownerId;
     return video;
   }
 
