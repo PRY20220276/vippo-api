@@ -40,11 +40,11 @@ export class AnalysisService {
       const annotationResults =
         await this.videoAnalysisService.generateAnnotations(video.path);
 
-      /*const labelsParsed = annotationResults.segmentLabelAnnotations.map(
+      const labelsParsed = annotationResults.segmentLabelAnnotations.map(
         (label) => {
           return label.entity.description;
         },
-      );*/
+      );
 
       const labels = JSON.stringify(annotationResults.segmentLabelAnnotations);
 
@@ -56,7 +56,7 @@ export class AnalysisService {
 
       const analysis = await this.prismaService.videoAnalysis.create({
         data: {
-          //labelsParsed: labelsParsed,
+          labelsParsed: labelsParsed,
           labels: labels,
           transcript: transcript,
           explicitContent: explicitContent,
