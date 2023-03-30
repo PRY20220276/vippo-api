@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { VideosService } from '../videos/videos.service';
 import { VideoAnalysisService } from '../shared/video-analysis.service';
 import { UpdateAnalysisDto } from './dtos/update-analysis.dto';
@@ -31,32 +36,45 @@ export class AnalysisService {
     }
 
     const video = await this.videosService.findOneByUserId(videoId, ownerId);
+    try {
+      const annotationResults =
+        await this.videoAnalysisService.generateAnnotations(video.path);
 
-    const annotationResults =
-      await this.videoAnalysisService.generateAnnotations(video.path);
+      /*const labelsParsed = annotationResults.segmentLabelAnnotations.map(
+        (label) => {
+          return label.entity.description;
+        },
+      );*/
 
-    const labels = JSON.stringify(annotationResults.segmentLabelAnnotations);
+      const labels = JSON.stringify(annotationResults.segmentLabelAnnotations);
 
-    const transcript = JSON.stringify(annotationResults.speechTranscriptions);
+      const transcript = JSON.stringify(annotationResults.speechTranscriptions);
 
-    const explicitContent = JSON.stringify(
-      annotationResults.explicitAnnotation,
-    );
+      const explicitContent = JSON.stringify(
+        annotationResults.explicitAnnotation,
+      );
 
-    const analysis = await this.prismaService.videoAnalysis.create({
-      data: {
-        labels: labels,
-        transcript: transcript,
-        explicitContent: explicitContent,
-        video: {
-          connect: {
-            id: video.id,
+      const analysis = await this.prismaService.videoAnalysis.create({
+        data: {
+          //labelsParsed: labelsParsed,
+          labels: labels,
+          transcript: transcript,
+          explicitContent: explicitContent,
+          video: {
+            connect: {
+              id: video.id,
+            },
           },
         },
-      },
-    });
+      });
 
-    return analysis;
+      return analysis;
+    } catch (err) {
+      console.error(err);
+      throw new ServiceUnavailableException(
+        'Something went wrong with the analysis, try again later',
+      );
+    }
   }
 
   findAll() {
@@ -81,49 +99,7 @@ export class AnalysisService {
       `Event received to create analysis for video #${payload.videoId}`,
     );
 
-    const existingAnalysis = await this.prismaService.videoAnalysis.findFirst({
-      where: {
-        video: {
-          ownerId: payload.userId,
-          id: payload.videoId,
-        },
-      },
-    });
-
-    if (existingAnalysis) {
-      this.logger.error(
-        `Video analysis for video #${payload.videoId} already exists`,
-      );
-      throw new BadRequestException('Analysis already performed');
-    }
-
-    const annotationResults =
-      await this.videoAnalysisService.generateAnnotations(payload.gcsUri);
-
-    const labels = JSON.stringify(annotationResults.segmentLabelAnnotations);
-
-    const transcript = JSON.stringify(annotationResults.speechTranscriptions);
-
-    const explicitContent = JSON.stringify(
-      annotationResults.explicitAnnotation,
-    );
-
-    const analysis = await this.prismaService.videoAnalysis.create({
-      data: {
-        labels: labels,
-        transcript: transcript,
-        explicitContent: explicitContent,
-        video: {
-          connect: {
-            id: payload.videoId,
-          },
-        },
-      },
-    });
-
-    this.logger.log(
-      `Created and store video analysis for video #${payload.videoId}`,
-    );
+    const analysis = await this.create(payload.userId, payload.videoId);
 
     return analysis;
   }
