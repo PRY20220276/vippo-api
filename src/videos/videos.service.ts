@@ -24,6 +24,7 @@ export class VideosService {
   ) {}
   async create(userId: number, videoFile: Express.Multer.File) {
     this.logger.log(`Creating video for user ${userId}`);
+
     const totalSize = await this.prismaService.video.aggregate({
       _sum: { size: true },
       where: { ownerId: userId },
@@ -54,6 +55,7 @@ export class VideosService {
         },
       },
     });
+
     const videoCreatedEvent = new VideoCreatedEvent();
     videoCreatedEvent.gcsUri = video.path;
     videoCreatedEvent.userId = userId;
@@ -87,6 +89,7 @@ export class VideosService {
         ownerId: userId,
       },
     });
+
     this.logger.log(`Retrieved ${items.length} videos for user #${userId}`);
 
     return new PaginationResponseDto(items, total, page, limit);
@@ -114,6 +117,7 @@ export class VideosService {
         ownerId: userId,
       },
     });
+
     this.logger.log(`Retrieved ${items.length} videos for user #${userId}`);
 
     return new PaginationResponseDto(items, total, page, limit);
@@ -192,12 +196,15 @@ export class VideosService {
 
   async remove(id: number, userId: number) {
     const video = await this.findOneByUserId(id, userId);
+
     await this.videoUploadService.deleteVideo(video.fileName);
+
     const deletedVideo = await this.prismaService.video.delete({
       where: {
         id: id,
       },
     });
+
     return deletedVideo;
   }
 }

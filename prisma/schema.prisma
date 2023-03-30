@@ -41,7 +41,8 @@ model Video {
 }
 
 model VideoAnalysis {
-  id              Int   @id @default(autoincrement())
+  id              Int      @id @default(autoincrement())
+  labelsParsed    String[]
   labels          Json?
   shotDetection   Json?
   transcript      Json?
