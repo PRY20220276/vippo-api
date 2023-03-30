@@ -25,6 +25,7 @@ model Video {
   originalName String   @default(value: "original")
   fileName     String   @default(value: "name")
   url          String?
+  prodUrl      String?
   bucket       String
   path         String
   contentType  String?
