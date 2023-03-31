@@ -48,7 +48,6 @@ export class VideosService {
         size: videoFile.size,
         path: uploadedVideo.path,
         url: uploadedVideo.url,
-        prodUrl: `https://ik.imagekit.io/4jp52ung9/${uploadedVideo.fileName}`,
         owner: {
           connect: {
             id: userId,
