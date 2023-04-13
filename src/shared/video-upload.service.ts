@@ -48,11 +48,29 @@ export class VideoUploadService {
     }
   }
 
+  async getObjectsByUserId(userId: number) {
+    const bucket = this.storage.bucket(this.bucketName);
+    const [files] = await bucket.getFiles({
+      delimiter: '',
+    });
+
+    const userVideos = [];
+
+    for (const file of files) {
+      const [metadata] = await file.getMetadata();
+      if (metadata.metadata.userId === userId) {
+        userVideos.push(metadata.selfLink);
+      }
+    }
+
+    return userVideos;
+  }
+
   async getSignedUrl(contentType: string, userId: number): Promise<object> {
     const fileName = uuidv4();
     const [url] = await this.storage
       .bucket(this.bucketName)
-      .file(fileName)
+      .file(`${userId}/${fileName}`)
       .getSignedUrl({
         action: 'write',
         expires: Date.now() + 15 * 60 * 1000,
