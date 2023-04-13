@@ -10,6 +10,14 @@ export class VideoUploadService {
   constructor() {
     this.storage = new Storage();
     this.bucketName = 'vippo-bucket-media-dev';
+    this.storage.bucket(this.bucketName).setCorsConfiguration([
+      {
+        origin: ['http://localhost:3000', 'https://app.vippo.space'],
+        responseHeader: ['Content-Type'],
+        method: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'OPTIONS'],
+        maxAgeSeconds: 3600,
+      },
+    ]);
   }
 
   async uploadVideo(file: Express.Multer.File, userId: number) {
@@ -40,7 +48,7 @@ export class VideoUploadService {
     }
   }
 
-  async getSignedUrl(contentType: string): Promise<object> {
+  async getSignedUrl(contentType: string, userId: number): Promise<object> {
     const fileName = uuidv4();
     const [url] = await this.storage
       .bucket(this.bucketName)
@@ -50,6 +58,9 @@ export class VideoUploadService {
         expires: Date.now() + 15 * 60 * 1000,
         version: 'v4',
         contentType: contentType,
+        extensionHeaders: {
+          'x-goog-meta-userId': userId,
+        },
       });
 
     return {
