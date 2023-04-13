@@ -21,7 +21,7 @@ export class AnalysisService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  async create(ownerId: number, videoId: number) {
+  async create(ownerId: number, videoId: number, gcsUri: string) {
     const existingAnalysis = await this.prismaService.videoAnalysis.findFirst({
       where: {
         video: {
@@ -32,31 +32,26 @@ export class AnalysisService {
     });
 
     if (existingAnalysis) {
+      await this.videoAnalysisService.generateAnnotationsAndSummary(gcsUri);
       throw new BadRequestException('Analysis already performed');
     }
 
     const video = await this.videosService.findOneByUserId(videoId, ownerId);
     try {
       const annotationResults =
-        await this.videoAnalysisService.generateAnnotations(video.path);
+        await this.videoAnalysisService.generateAnnotationsAndSummary(
+          video.path,
+        );
 
-      const labelsParsed = annotationResults.segmentLabelAnnotations.map(
-        (label) => {
-          return label.entity.description;
-        },
-      );
+      const labels = JSON.stringify(annotationResults.labels);
 
-      const labels = JSON.stringify(annotationResults.segmentLabelAnnotations);
+      const transcript = JSON.stringify(annotationResults.transcript);
 
-      const transcript = JSON.stringify(annotationResults.speechTranscriptions);
-
-      const explicitContent = JSON.stringify(
-        annotationResults.explicitAnnotation,
-      );
+      const explicitContent = JSON.stringify(annotationResults.explicitContent);
 
       const analysis = await this.prismaService.videoAnalysis.create({
         data: {
-          labelsParsed: labelsParsed,
+          labelsParsed: annotationResults.labelsParsed,
           labels: labels,
           transcript: transcript,
           explicitContent: explicitContent,
@@ -99,7 +94,11 @@ export class AnalysisService {
       `Event received to create analysis for video #${payload.videoId}`,
     );
 
-    const analysis = await this.create(payload.userId, payload.videoId);
+    const analysis = await this.create(
+      payload.userId,
+      payload.videoId,
+      payload.gcsUri,
+    );
 
     return analysis;
   }

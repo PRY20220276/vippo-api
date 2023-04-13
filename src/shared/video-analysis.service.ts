@@ -13,6 +13,15 @@ enum Feature {
   LOGO_RECOGNITION = 12,
   PERSON_DETECTION = 14,
 }
+
+interface EntityTimestamp {
+  startOffset: number;
+  endOffset: number;
+  startTimeSeconds: any;
+  startTimeNanos: any;
+  endTimeSeconds: any;
+  endTimeNanos: any;
+}
 @Injectable()
 export class VideoAnalysisService {
   private readonly client: VideoIntelligenceServiceClient;
@@ -37,7 +46,7 @@ export class VideoAnalysisService {
 
     const [operation] = await this.client.annotateVideo({
       inputUri: gcsUri,
-      features: [1, 6, 3],
+      features: [Feature.LABEL_DETECTION, 6, 3],
       videoContext: videoContext,
     });
 
@@ -60,10 +69,8 @@ export class VideoAnalysisService {
       inputUri: gcsUri,
       features: [
         Feature.LABEL_DETECTION,
-        Feature.SHOT_CHANGE_DETECTION,
         Feature.EXPLICIT_CONTENT_DETECTION,
         Feature.SPEECH_TRANSCRIPTION,
-        Feature.TEXT_DETECTION,
         Feature.OBJECT_TRACKING,
       ],
       videoContext: videoContext,
@@ -72,129 +79,115 @@ export class VideoAnalysisService {
     const [operationResult] = await operation.promise();
     // Gets annotations for video
     const annotationResults = operationResult.annotationResults[0];
-    // Group object tracks by object entity ID
-    const objectTracks = annotationResults.objectAnnotations;
-    const objectGroups = {};
-    objectTracks.forEach((track) => {
-      const { entity } = track;
-      const entityId = entity.entityId;
-      if (!objectGroups[entityId]) {
-        objectGroups[entityId] = [];
+    // Other analysis
+    const labels = JSON.stringify(annotationResults.segmentLabelAnnotations);
+    const labelsParsed = annotationResults.segmentLabelAnnotations.map(
+      (label) => {
+        return label.entity.description;
+      },
+    );
+    const transcript = JSON.stringify(annotationResults.speechTranscriptions);
+    const explicitContent = JSON.stringify(
+      annotationResults.explicitAnnotation,
+    );
+    // VIDEO SUMMARIZATION ALGORITHM
+    const objects = annotationResults.objectAnnotations;
+    // group entity appearances in the video
+    const groupedObjects = objects
+      .reduce((acc, object) => {
+        const entity = object.entity.description;
+        const timestamp: EntityTimestamp = {
+          startTimeSeconds: object.segment.startTimeOffset.seconds || 0,
+          startTimeNanos: (object.segment.startTimeOffset.nanos / 1e6).toFixed(
+            0,
+          ),
+          endTimeSeconds: object.segment.endTimeOffset.seconds || 0,
+          endTimeNanos: (object.segment.endTimeOffset.nanos / 1e6).toFixed(0),
+          startOffset: parseFloat(
+            (object.segment.startTimeOffset.seconds || 0).toString() +
+              '.' +
+              (object.segment.startTimeOffset.nanos / 1e6).toFixed(0),
+          ),
+          endOffset: parseFloat(
+            (object.segment.endTimeOffset.seconds || 0).toString() +
+              '.' +
+              (object.segment.endTimeOffset.nanos / 1e6).toFixed(0),
+          ),
+        };
+        const startTime =
+          parseFloat(object.segment.startTimeOffset.seconds.toString()) +
+          object.segment.startTimeOffset.nanos / 1e9;
+        const endTime =
+          parseFloat(object.segment.endTimeOffset.seconds.toString()) +
+          object.segment.endTimeOffset.nanos / 1e9;
+        const totalDuration = parseFloat((endTime - startTime).toFixed(2));
+        const index = acc.findIndex(
+          (groupedObject) => groupedObject.name === entity,
+        );
+        if (index === -1) {
+          acc.push({
+            name: entity,
+            appearances: 1,
+            appearanceFrequency: 1,
+            totalDuration,
+            timestamps: [timestamp],
+          });
+        } else {
+          const entityAppearance = acc[index];
+          entityAppearance.appearances += 1;
+          entityAppearance.appearanceFrequency += 1;
+          entityAppearance.totalDuration += totalDuration;
+          entityAppearance.timestamps.push(timestamp);
+        }
+        return acc;
+      }, [])
+      .sort((a, b) => b.appearanceFrequency - a.appearanceFrequency);
+    // Create an empty dictionary to store the timestamps for each detected object
+    console.log(JSON.stringify(groupedObjects));
+    // select the highlights of the video
+    const summary = [];
+    let summaryDuration = 0;
+    for (let i = 0; i < groupedObjects.length; i++) {
+      const entityAppearance = groupedObjects[i];
+      const appearanceDuration =
+        entityAppearance.totalDuration / entityAppearance.appearances;
+      if (
+        summaryDuration + appearanceDuration <=
+        this.calculateSummaryDuration(12)
+      ) {
+        summary.push({
+          entity: entityAppearance.name,
+          startTimeSeconds: entityAppearance.timestamps[0].startTimeSeconds,
+          startTimeNanos: entityAppearance.timestamps[0].startTimeNanos,
+          endTimeSeconds: entityAppearance.timestamps[0].endTimeSeconds,
+          endTimeNanos: entityAppearance.timestamps[0].endTimeNanos,
+        });
+        summaryDuration += appearanceDuration;
+      } else {
+        break;
       }
-      objectGroups[entityId].push(track);
-    });
-    // Select the most representative object track for each object entity
-    const objectSummaries = [];
-    Object.keys(objectGroups).forEach((entityId) => {
-      const tracks = objectGroups[entityId];
-      const representativeTrack = this.selectRepresentativeTrack(tracks);
-      objectSummaries.push({
-        entity: representativeTrack.entity.description,
-        startTimeOffset: representativeTrack.startTimeOffset.seconds,
-        endTimeOffset: representativeTrack.endTimeOffset.seconds,
-        confidence: representativeTrack.confidence,
-      });
-    });
-    // Sort object summaries by confidence score in descending order
-    objectSummaries.sort((a, b) => b.confidence - a.confidence);
-    // Select top 3 object summaries
-    const topObjectSummaries = objectSummaries.slice(0, 3);
+    }
+    console.log(summary);
     // Add object summarization to results
     const results = {
-      objectSummaries: topObjectSummaries,
+      objectSummaries: summary,
+      explicitContent: explicitContent,
+      labels: labels,
+      labelsParsed: labelsParsed,
+      transcript: transcript,
     };
     return results;
   }
 
-  selectRepresentativeTrack(tracks) {
-    // Select the object track with the highest confidence score
-    let representativeTrack = tracks[0];
-    for (let i = 1; i < tracks.length; i++) {
-      if (tracks[i].confidence > representativeTrack.confidence) {
-        representativeTrack = tracks[i];
-      }
+  calculateSummaryDuration(videoLengthSeconds: number): number {
+    if (videoLengthSeconds < 300) {
+      return Math.floor(videoLengthSeconds / 3);
+    } else if (videoLengthSeconds < 600) {
+      return 200;
+    } else if (videoLengthSeconds < 1800) {
+      return 300;
+    } else {
+      return 600;
     }
-    return representativeTrack;
-  }
-
-  /**
-   * It takes a GCS URI, sends it to the Cloud Video Intelligence API, and returns a summary of the
-   * video based on the labels
-   * @param {string} gcsUri - The URI of the video stored in Google Cloud Storage.
-   * @returns A string containing a summary of the video based on the labels
-   */
-  async generateSummary(gcsUri: string): Promise<string> {
-    const [operation] = await this.client.annotateVideo({
-      inputUri: gcsUri,
-      features: [1],
-    });
-
-    const [result] = await operation.promise();
-
-    if (result.annotationResults.length === 0) {
-      throw new BadRequestException('No analysis results found.');
-    }
-
-    const labels = result.annotationResults[0].segmentLabelAnnotations;
-
-    // Return a summary of the video based on the labels
-    const summary = labels.map((label) => label.entity.description).join(', ');
-
-    return summary;
-  }
-
-  /**
-   * We're using the Google Cloud Video Intelligence API to analyze the video and return a transcript
-   * @param {string} gcsUri - The URI of the video file in Google Cloud Storage.
-   * @returns The transcript of the video
-   */
-  async generateTranscript(gcsUri: string): Promise<object> {
-    const videoContext = {
-      speechTranscriptionConfig: {
-        languageCode: 'en-US',
-        enableAutomaticPunctuation: true,
-      },
-    };
-    const [operation] = await this.client.annotateVideo({
-      inputUri: gcsUri,
-      features: [6],
-      videoContext: videoContext,
-    });
-
-    const [operationResult] = await operation.promise();
-
-    const annotationResults = operationResult.annotationResults[0];
-
-    if (annotationResults.speechTranscriptions.length === 0) {
-      throw new BadRequestException('No analysis results found.');
-    }
-
-    return annotationResults.speechTranscriptions;
-  }
-
-  async detectUnsafeContent(gcsUri: string): Promise<object> {
-    const likelihoods = [
-      'UNKNOWN',
-      'VERY_UNLIKELY',
-      'UNLIKELY',
-      'POSSIBLE',
-      'LIKELY',
-      'VERY_LIKELY',
-    ];
-
-    const [operation] = await this.client.annotateVideo({
-      inputUri: gcsUri,
-      features: [3],
-    });
-
-    const [operationResult] = await operation.promise();
-
-    const annotationResults = operationResult.annotationResults[0];
-
-    if (annotationResults.speechTranscriptions.length === 0) {
-      throw new BadRequestException('No analysis results found.');
-    }
-
-    return annotationResults.speechTranscriptions;
   }
 }

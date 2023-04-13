@@ -13,7 +13,6 @@ import {
 } from '@nestjs/common';
 import { VideosService } from './videos.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from '../users/decorators/current-user.decorator';
 import { User, Video } from '@prisma/client';
 import { PaginationQueryDto } from '../shared/dto/pagination-query.dto';
@@ -27,28 +26,15 @@ import { SearchVideoQueryDto } from './dto/search-video-query.dto';
 export class VideosController {
   constructor(private readonly videosService: VideosService) {}
 
-  @Post()
-  @UseInterceptors(FileInterceptor('video'))
+  @Get('signed-url')
   @ApiOperation({
-    summary: 'Upload a video to your personal drive',
+    summary: 'Get signed url for bucket uploading',
   })
-  create(
+  signedUrl(
+    @Query('contentType') contentType: string,
     @CurrentUser() user: User,
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({
-          fileType: 'video',
-        })
-        .addMaxSizeValidator({
-          maxSize: 20 * 1024 * 1024, // 20MB
-        })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-        }),
-    )
-    videoFile: Express.Multer.File,
   ) {
-    return this.videosService.create(user.id, videoFile);
+    return this.videosService.createSignedUrl(user.id, contentType);
   }
 
   @Get()

@@ -40,6 +40,24 @@ export class VideoUploadService {
     }
   }
 
+  async getSignedUrl(contentType: string): Promise<object> {
+    const fileName = uuidv4();
+    const [url] = await this.storage
+      .bucket(this.bucketName)
+      .file(fileName)
+      .getSignedUrl({
+        action: 'write',
+        expires: Date.now() + 15 * 60 * 1000,
+        version: 'v4',
+        contentType: contentType,
+      });
+
+    return {
+      signedUrl: url,
+      fileName: fileName,
+    };
+  }
+
   async deleteVideo(fileName: string): Promise<void> {
     const bucket = this.storage.bucket(this.bucketName);
     const blob = bucket.file(fileName);
