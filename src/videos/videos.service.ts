@@ -22,6 +22,17 @@ export class VideosService {
     private readonly prismaService: PrismaService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
+
+  async createSignedUrl(userId: number, contentType: string) {
+    if (!/^video\/(mp4|webm|quicktime)$/.test(contentType)) {
+      throw new BadRequestException(
+        'Invalid content type. Only video files are allowed.',
+      );
+    }
+    const bucketResponse = await this.videoUploadService.getSignedUrl('');
+    return bucketResponse;
+  }
+
   async create(userId: number, videoFile: Express.Multer.File) {
     this.logger.log(`Creating video for user ${userId}`);
 
@@ -188,6 +199,12 @@ export class VideosService {
     if (!video) {
       throw new NotFoundException(`Video #${id} not found`);
     }
+
+    const videoCreatedEvent = new VideoCreatedEvent();
+    videoCreatedEvent.gcsUri = video.path;
+    videoCreatedEvent.userId = userId;
+    videoCreatedEvent.videoId = video.id;
+    this.eventEmitter.emit('video.created', videoCreatedEvent);
 
     this.logger.log(`Retrieved video #${id} with owner #${userId}`);
 

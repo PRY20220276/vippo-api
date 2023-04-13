@@ -21,7 +21,7 @@ export class AnalysisController {
 
   @Post('videos/:videoId/analysis')
   create(@Param('videoId') videoId: string, @CurrentUser() user: User) {
-    return this.analysisService.create(user.id, +videoId);
+    return this.analysisService.create(user.id, +videoId, '');
   }
 
   @Get('videos/:videoId/analysis')
