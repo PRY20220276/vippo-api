@@ -29,7 +29,10 @@ export class VideosService {
         'Invalid content type. Only video files are allowed.',
       );
     }
-    const bucketResponse = await this.videoUploadService.getSignedUrl('');
+    const bucketResponse = await this.videoUploadService.getSignedUrl(
+      contentType,
+      userId,
+    );
     return bucketResponse;
   }
 
