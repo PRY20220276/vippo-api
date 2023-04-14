@@ -9,7 +9,7 @@ import { Video } from '@prisma/client';
 import { PaginationQueryDto } from '../shared/dto/pagination-query.dto';
 import { PaginationResponseDto } from '../shared/dto/pagination-response.dto';
 import { PrismaService } from '../shared/prisma.service';
-import { VideoUploadService } from '../shared/video-upload.service';
+import { VideoStorageService } from '../shared/video-storage.service';
 import { SearchVideoQueryDto } from './dto/search-video-query.dto';
 import { VideoDto } from './dto/video.dto';
 import { VideoCreatedEvent } from './events/video-created.event';
@@ -18,7 +18,7 @@ import { VideoCreatedEvent } from './events/video-created.event';
 export class VideosService {
   private readonly logger = new Logger(VideosService.name);
   constructor(
-    private readonly videoUploadService: VideoUploadService,
+    private readonly videoUploadService: VideoStorageService,
     private readonly prismaService: PrismaService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
@@ -84,9 +84,10 @@ export class VideosService {
   async findAll(
     paginationQueryDto: PaginationQueryDto,
     userId: number,
-  ): Promise<PaginationResponseDto<Video>> {
+  ): Promise<object> {
     const limit = paginationQueryDto.limit || 10;
     const page = paginationQueryDto.page || 1;
+    /*
     const items = await this.prismaService.video.findMany({
       where: {
         ownerId: userId,
@@ -103,10 +104,25 @@ export class VideosService {
         ownerId: userId,
       },
     });
+    */
+    const { items, totalItems } =
+      await this.videoUploadService.getObjectsByUserId(userId, limit, page);
+    const userVideos = items.map((file) => {
+      return {
+        name: file.metadata.name.split('/')[1],
+        thumbnail: `https://ik.imagekit.io/4jp52ung9/${file.metadata.name}/ik-thumbnail.jpg`,
+        src: `https://ik.imagekit.io/4jp52ung9/${file.metadata.name}`,
+        downloadPath: file.metadata.mediaLink,
+        size: +file.metadata.size,
+        link: file.metadata.selfLink,
+        contentType: file.metadata.contentType,
+        createdAt: file.metadata.timeCreated,
+      };
+    });
 
     this.logger.log(`Retrieved ${items.length} videos for user #${userId}`);
 
-    return new PaginationResponseDto(items, total, page, limit);
+    return new PaginationResponseDto(userVideos, totalItems, page, limit);
   }
 
   async search(

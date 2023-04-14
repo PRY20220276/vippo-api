@@ -3,7 +3,7 @@ import { Storage } from '@google-cloud/storage';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
-export class VideoUploadService {
+export class VideoStorageService {
   private readonly storage: Storage;
   private readonly bucketName: string;
 
@@ -48,26 +48,32 @@ export class VideoUploadService {
     }
   }
 
-  async getObjectsByUserId(userId: number) {
+  async getObjectsByUserId(userId: number, limit: number, page: number) {
     const bucket = this.storage.bucket(this.bucketName);
+    const prefix = userId + '/';
+    const startOffset = (page - 1) * limit;
+
     const [files] = await bucket.getFiles({
-      delimiter: '',
+      prefix: prefix,
+      maxResults: limit,
     });
 
-    const userVideos = [];
+    const [allUserFiles] = await bucket.getFiles({
+      prefix: prefix,
+    });
 
-    for (const file of files) {
-      const [metadata] = await file.getMetadata();
-      if (metadata.metadata.userId === userId) {
-        userVideos.push(metadata.selfLink);
-      }
-    }
+    const totalItems = allUserFiles.length;
 
-    return userVideos;
+    return {
+      items: files,
+      totalItems,
+    };
   }
 
   async getSignedUrl(contentType: string, userId: number): Promise<object> {
-    const fileName = uuidv4();
+    // Get the extension based on the content type
+    const extension = contentType.split('/')[1];
+    const fileName = `${uuidv4()}.${extension}`;
     const [url] = await this.storage
       .bucket(this.bucketName)
       .file(`${userId}/${fileName}`)
@@ -76,9 +82,6 @@ export class VideoUploadService {
         expires: Date.now() + 15 * 60 * 1000,
         version: 'v4',
         contentType: contentType,
-        extensionHeaders: {
-          'x-goog-meta-userId': userId,
-        },
       });
 
     return {

@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 import { PrismaService } from '../shared/prisma.service';
 import { VideoAnalysisService } from '../shared/video-analysis.service';
-import { VideoUploadService } from '../shared/video-upload.service';
+import { VideoStorageService } from '../shared/video-storage.service';
 import { VideosService } from '../videos/videos.service';
 import { AnalysisService } from './analysis.service';
 
@@ -12,7 +12,7 @@ describe('AnalysisService', () => {
   let service: AnalysisService;
   let prismaService: DeepMockProxy<PrismaClient>;
   let videoAnalysisService: VideoAnalysisService;
-  let videoUploadService: VideoUploadService;
+  let videoUploadService: VideoStorageService;
   let videosService: VideosService;
 
   beforeEach(async () => {
@@ -21,7 +21,7 @@ describe('AnalysisService', () => {
         AnalysisService,
         PrismaService,
         VideoAnalysisService,
-        VideoUploadService,
+        VideoStorageService,
         VideosService,
         EventEmitter2,
       ],

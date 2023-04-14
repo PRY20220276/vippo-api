@@ -1,7 +1,7 @@
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../shared/prisma.service';
-import { VideoUploadService } from '../shared/video-upload.service';
+import { VideoStorageService } from '../shared/video-storage.service';
 import { VideosController } from './videos.controller';
 import { VideosService } from './videos.service';
 
@@ -14,7 +14,7 @@ describe('VideosController', () => {
       providers: [
         VideosService,
         EventEmitter2,
-        VideoUploadService,
+        VideoStorageService,
         PrismaService,
       ],
     }).compile();
