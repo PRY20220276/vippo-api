@@ -36,12 +36,9 @@ export class AnalysisService {
       throw new BadRequestException('Analysis already performed');
     }
 
-    const video = await this.videosService.findOneByUserId(videoId, ownerId);
     try {
       const annotationResults =
-        await this.videoAnalysisService.generateAnnotationsAndSummary(
-          video.path,
-        );
+        await this.videoAnalysisService.generateAnnotationsAndSummary(gcsUri);
 
       const labels = JSON.stringify(annotationResults.labels);
 
@@ -57,7 +54,7 @@ export class AnalysisService {
           explicitContent: explicitContent,
           video: {
             connect: {
-              id: video.id,
+              id: videoId,
             },
           },
         },
