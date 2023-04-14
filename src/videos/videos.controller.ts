@@ -10,6 +10,7 @@ import {
   ClassSerializerInterceptor,
   ParseFilePipeBuilder,
   HttpStatus,
+  Body,
 } from '@nestjs/common';
 import { VideosService } from './videos.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -18,6 +19,7 @@ import { User, Video } from '@prisma/client';
 import { PaginationQueryDto } from '../shared/dto/pagination-query.dto';
 import { PaginationResponseDto } from '../shared/dto/pagination-response.dto';
 import { SearchVideoQueryDto } from './dto/search-video-query.dto';
+import { CreateVideoDto } from './dto/create-video.dto';
 
 @ApiBearerAuth()
 @ApiTags('Videos')
@@ -26,15 +28,12 @@ import { SearchVideoQueryDto } from './dto/search-video-query.dto';
 export class VideosController {
   constructor(private readonly videosService: VideosService) {}
 
-  @Get('signed-url')
+  @Post('signed-url')
   @ApiOperation({
-    summary: 'Get signed url for bucket uploading',
+    summary: 'Generate signed url for bucket uploading',
   })
-  signedUrl(
-    @Query('contentType') contentType: string,
-    @CurrentUser() user: User,
-  ) {
-    return this.videosService.createSignedUrl(user.id, contentType);
+  signedUrl(@Body() createVideDto: CreateVideoDto, @CurrentUser() user: User) {
+    return this.videosService.createSignedUrl(user.id, createVideDto);
   }
 
   @Get()

@@ -24,6 +24,62 @@ export class VideoStorageService {
     ]);
   }
 
+  async findOneByUserId(userId: number, fileName: string) {
+    const bucket = this.storage.bucket(this.bucketName);
+    const name = userId + '/' + fileName;
+    const file = bucket.file(name);
+
+    // read results and output json
+
+    try {
+      const [metadata] = await file.getMetadata();
+      return { metadata };
+    } catch (error) {
+      throw new NotFoundException(`Video ${fileName} not found`);
+    }
+  }
+
+  async findAllByUserId(userId: number, limit: number, page: number) {
+    const bucket = this.storage.bucket(this.bucketName);
+    const prefix = userId + '/';
+    // const startOffset = (page - 1) * limit;
+
+    const [files] = await bucket.getFiles({
+      prefix: prefix,
+      maxResults: limit,
+    });
+
+    const [allUserFiles] = await bucket.getFiles({
+      prefix: prefix,
+    });
+
+    const totalItems = allUserFiles.length;
+
+    return {
+      items: files,
+      totalItems,
+    };
+  }
+
+  async getSignedUrl(
+    userId: number,
+    fileName: string,
+    contentType: string,
+  ): Promise<string> {
+    // Get the extension based on the content type
+    const [url] = await this.storage
+      .bucket(this.bucketName)
+      .file(`${userId}/${fileName}`)
+      .getSignedUrl({
+        action: 'write',
+        expires: Date.now() + 15 * 60 * 1000,
+        version: 'v4',
+        contentType: contentType,
+      });
+
+    return url;
+  }
+
   async uploadVideo(file: Express.Multer.File, userId: number) {
     const extension = file.originalname.split('.').pop();
     const fileName = `${uuidv4()}.${extension}`;
@@ -50,61 +106,6 @@ export class VideoStorageService {
         'Something went wrong with the upload, try again later',
       );
     }
-  }
-
-  async findOneByUserId(userId: number, fileName: string) {
-    const bucket = this.storage.bucket(this.bucketName);
-    const name = userId + '/' + fileName;
-    const file = bucket.file(name);
-
-    try {
-      const [metadata] = await file.getMetadata();
-      return { metadata };
-    } catch (error) {
-      throw new NotFoundException(`Video ${fileName} not found`);
-    }
-  }
-
-  async getObjectsByUserId(userId: number, limit: number, page: number) {
-    const bucket = this.storage.bucket(this.bucketName);
-    const prefix = userId + '/';
-    const startOffset = (page - 1) * limit;
-
-    const [files] = await bucket.getFiles({
-      prefix: prefix,
-      maxResults: limit,
-    });
-
-    const [allUserFiles] = await bucket.getFiles({
-      prefix: prefix,
-    });
-
-    const totalItems = allUserFiles.length;
-
-    return {
-      items: files,
-      totalItems,
-    };
-  }
-
-  async getSignedUrl(contentType: string, userId: number): Promise<object> {
-    // Get the extension based on the content type
-    const extension = contentType.split('/')[1];
-    const fileName = `${uuidv4()}.${extension}`;
-    const [url] = await this.storage
-      .bucket(this.bucketName)
-      .file(`${userId}/${fileName}`)
-      .getSignedUrl({
-        action: 'write',
-        expires: Date.now() + 15 * 60 * 1000,
-        version: 'v4',
-        contentType: contentType,
-      });
-
-    return {
-      signedUrl: url,
-      fileName: fileName,
-    };
   }
 
   async deleteVideo(fileName: string): Promise<void> {
