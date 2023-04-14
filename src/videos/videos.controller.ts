@@ -67,19 +67,19 @@ export class VideosController {
     return this.videosService.stats(user.id);
   }
 
-  @Get(':id')
+  @Get(':fileName')
   @ApiOperation({
     summary: 'Retrieve an especific video from your personal drive',
   })
-  findOne(@Param('id') id: string, @CurrentUser() user: User) {
-    return this.videosService.findOneByUserId(+id, user.id);
+  findOne(@Param('fileName') fileName: string, @CurrentUser() user: User) {
+    return this.videosService.findOneByUserId(fileName, user.id);
   }
 
-  @Delete(':id')
+  @Delete(':fileName')
   @ApiOperation({
     summary: 'Delete a specific video from your personal drive',
   })
-  remove(@Param('id') id: string, @CurrentUser() user: User) {
-    return this.videosService.remove(+id, user.id);
+  remove(@Param('fileName') fileName: string, @CurrentUser() user: User) {
+    return this.videosService.remove(fileName, user.id);
   }
 }

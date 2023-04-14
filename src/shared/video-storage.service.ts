@@ -1,4 +1,8 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { Storage } from '@google-cloud/storage';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -45,6 +49,19 @@ export class VideoStorageService {
       throw new ServiceUnavailableException(
         'Something went wrong with the upload, try again later',
       );
+    }
+  }
+
+  async findOneByUserId(userId: number, fileName: string) {
+    const bucket = this.storage.bucket(this.bucketName);
+    const name = userId + '/' + fileName;
+    const file = bucket.file(name);
+
+    try {
+      const [metadata] = await file.getMetadata();
+      return { metadata };
+    } catch (error) {
+      throw new NotFoundException(`Video ${fileName} not found`);
     }
   }
 

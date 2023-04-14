@@ -203,44 +203,31 @@ export class VideosService {
     return video;
   }
 
-  async findOneByUserId(id: number, userId: number) {
-    const video = await this.prismaService.video.findFirst({
-      where: {
-        id: id,
-        ownerId: userId,
-      },
-      include: {
-        owner: true,
-        videoAnalysis: true,
-      },
-    });
+  async findOneByUserId(fileName: string, userId: number) {
+    const video = await this.videoUploadService.findOneByUserId(
+      userId,
+      fileName,
+    );
 
-    if (!video) {
-      throw new NotFoundException(`Video #${id} not found`);
-    }
+    this.logger.log(`Retrieved video #${fileName} with owner #${userId}`);
 
-    const videoCreatedEvent = new VideoCreatedEvent();
-    videoCreatedEvent.gcsUri = video.path;
-    videoCreatedEvent.userId = userId;
-    videoCreatedEvent.videoId = video.id;
-    this.eventEmitter.emit('video.created', videoCreatedEvent);
-
-    this.logger.log(`Retrieved video #${id} with owner #${userId}`);
-
-    return video;
+    return {
+      name: video.metadata.name.split('/')[1],
+      thumbnail: `https://ik.imagekit.io/4jp52ung9/${video.metadata.name}/ik-thumbnail.jpg`,
+      src: `https://ik.imagekit.io/4jp52ung9/${video.metadata.name}`,
+      downloadPath: video.metadata.mediaLink,
+      size: +video.metadata.size,
+      link: video.metadata.selfLink,
+      contentType: video.metadata.contentType,
+      createdAt: video.metadata.timeCreated,
+    };
   }
 
-  async remove(id: number, userId: number) {
-    const video = await this.findOneByUserId(id, userId);
+  async remove(fileName: string, userId: number) {
+    const video = await this.findOneByUserId(fileName, userId);
 
-    await this.videoUploadService.deleteVideo(video.fileName);
+    await this.videoUploadService.deleteVideo(fileName);
 
-    const deletedVideo = await this.prismaService.video.delete({
-      where: {
-        id: id,
-      },
-    });
-
-    return deletedVideo;
+    return video;
   }
 }
