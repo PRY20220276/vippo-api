@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Video } from '@prisma/client';
 import { PaginationQueryDto } from '../shared/dto/pagination-query.dto';
@@ -13,6 +8,7 @@ import { VideoStorageService } from '../shared/video-storage.service';
 import { SearchVideoQueryDto } from './dto/search-video-query.dto';
 import { VideoDto } from './dto/video.dto';
 import { VideoCreatedEvent } from './events/video-created.event';
+import { CreateVideoDto } from './dto/create-video.dto';
 
 @Injectable()
 export class VideosService {
@@ -23,17 +19,48 @@ export class VideosService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async createSignedUrl(userId: number, contentType: string) {
-    if (!/^video\/(mp4|webm|quicktime)$/.test(contentType)) {
+  async createSignedUrl(userId: number, createVideoDto: CreateVideoDto) {
+    if (!/^video\/(mp4|webm|quicktime)$/.test(createVideoDto.contentType)) {
       throw new BadRequestException(
         'Invalid content type. Only video files are allowed.',
       );
     }
-    const bucketResponse = await this.videoUploadService.getSignedUrl(
-      contentType,
+    // const extension = createVideoDto.contentType.split('/')[1];
+    const fileName = this.generateFriendlyFileName(createVideoDto.fileName);
+    const signedUrl = await this.videoUploadService.getSignedUrl(
       userId,
+      fileName,
+      createVideoDto.contentType,
     );
-    return bucketResponse;
+    return {
+      signedUrl,
+      fileName,
+    };
+  }
+
+  generateFriendlyFileName(originalFilename: string): string {
+    const currentDate = new Date();
+    const formattedDate = currentDate
+      .toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+      .replace(/\//g, '')
+      .replace(/:/g, '')
+      .replace(/,/g, '')
+      .replace(/\s/g, '');
+
+    const fileExtension = originalFilename.split('.').pop();
+    const fileBaseName = originalFilename
+      .replace(/\.[^/.]+$/, '')
+      .replace(/\s+/g, '_');
+
+    const friendlyFilename = `${fileBaseName}-${formattedDate}.${fileExtension}`;
+    return friendlyFilename;
   }
 
   async create(userId: number, videoFile: Express.Multer.File) {
@@ -87,38 +114,14 @@ export class VideosService {
   ): Promise<object> {
     const limit = paginationQueryDto.limit || 10;
     const page = paginationQueryDto.page || 1;
-    /*
-    const items = await this.prismaService.video.findMany({
-      where: {
-        ownerId: userId,
-      },
-      take: limit,
-      skip: (page - 1) * limit,
-      include: {
-        owner: true,
-        videoAnalysis: true,
-      },
-    });
-    const total = await this.prismaService.video.count({
-      where: {
-        ownerId: userId,
-      },
-    });
-    */
-    const { items, totalItems } =
-      await this.videoUploadService.getObjectsByUserId(userId, limit, page);
-    const userVideos = items.map((file) => {
-      return {
-        name: file.metadata.name.split('/')[1],
-        thumbnail: `https://ik.imagekit.io/4jp52ung9/${file.metadata.name}/ik-thumbnail.jpg`,
-        src: `https://ik.imagekit.io/4jp52ung9/${file.metadata.name}`,
-        downloadPath: file.metadata.mediaLink,
-        size: +file.metadata.size,
-        link: file.metadata.selfLink,
-        contentType: file.metadata.contentType,
-        createdAt: file.metadata.timeCreated,
-      };
-    });
+    const { items, totalItems } = await this.videoUploadService.findAllByUserId(
+      userId,
+      limit,
+      page,
+    );
+    const userVideos = items.map((videoFile) =>
+      this.parseFileObject(videoFile),
+    );
 
     this.logger.log(`Retrieved ${items.length} videos for user #${userId}`);
 
@@ -189,38 +192,15 @@ export class VideosService {
     };
   }
 
-  async findOne(id: number) {
-    const video = await this.prismaService.video.findUnique({
-      where: {
-        id: id,
-      },
-    });
-
-    if (!video) {
-      throw new NotFoundException(`Video #${id} not found`);
-    }
-    this.logger.log(`Retrieved video #${id}`);
-    return video;
-  }
-
   async findOneByUserId(fileName: string, userId: number) {
-    const video = await this.videoUploadService.findOneByUserId(
+    const videoFile = await this.videoUploadService.findOneByUserId(
       userId,
       fileName,
     );
 
     this.logger.log(`Retrieved video #${fileName} with owner #${userId}`);
 
-    return {
-      name: video.metadata.name.split('/')[1],
-      thumbnail: `https://ik.imagekit.io/4jp52ung9/${video.metadata.name}/ik-thumbnail.jpg`,
-      src: `https://ik.imagekit.io/4jp52ung9/${video.metadata.name}`,
-      downloadPath: video.metadata.mediaLink,
-      size: +video.metadata.size,
-      link: video.metadata.selfLink,
-      contentType: video.metadata.contentType,
-      createdAt: video.metadata.timeCreated,
-    };
+    return this.parseFileObject(videoFile);
   }
 
   async remove(fileName: string, userId: number) {
@@ -229,5 +209,25 @@ export class VideosService {
     await this.videoUploadService.deleteVideo(fileName);
 
     return video;
+  }
+
+  parseFileObject(file) {
+    return {
+      name: file.metadata.name.split('/')[1],
+      thumbnail: `https://ik.imagekit.io/4jp52ung9/${file.metadata.name}/ik-thumbnail.jpg`,
+      src: `https://ik.imagekit.io/4jp52ung9/${file.metadata.name}`,
+      downloadPath: file.metadata.mediaLink,
+      size: +file.metadata.size,
+      link: file.metadata.selfLink,
+      contentType: file.metadata.contentType,
+      createdAt: file.metadata.timeCreated,
+      meta: {
+        processed: file.metadata.metadata ? true : false,
+        labels:
+          file.metadata.metadata && file.metadata.metadata.labels
+            ? JSON.parse(file.metadata.metadata.labels)
+            : [],
+      },
+    };
   }
 }
