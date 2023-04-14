@@ -44,7 +44,7 @@ export class VideosController {
   findAll(
     @Query() paginationQueryDto: PaginationQueryDto,
     @CurrentUser() user: User,
-  ): Promise<PaginationResponseDto<Video>> {
+  ) {
     return this.videosService.findAll(paginationQueryDto, user.id);
   }
 
