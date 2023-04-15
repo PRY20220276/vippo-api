@@ -227,6 +227,18 @@ export class VideosService {
           file.metadata.metadata && file.metadata.metadata.labels
             ? JSON.parse(file.metadata.metadata.labels)
             : [],
+        explicitContent:
+          file.metadata.metadata && file.metadata.metadata.explicitContent
+            ? JSON.parse(file.metadata.metadata.explicitContent)
+            : [],
+        objects:
+          file.metadata.metadata && file.metadata.metadata.objects
+            ? JSON.parse(file.metadata.metadata.objects)
+            : [],
+        summary:
+          file.metadata.metadata && file.metadata.metadata.summary
+            ? JSON.parse(file.metadata.metadata.summary)
+            : [],
       },
     };
   }
