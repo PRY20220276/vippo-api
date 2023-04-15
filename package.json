@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@google-cloud/storage": "^6.9.5",
-    "@google-cloud/video-intelligence": "^4.2.1",
+    "@google-cloud/video-intelligence": "^4.2.2",
     "@nestjs/common": "^9.4.0",
     "@nestjs/core": "^9.4.0",
     "@nestjs/event-emitter": "^1.4.1",
