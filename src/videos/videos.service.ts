@@ -223,6 +223,7 @@ export class VideosService {
       createdAt: file.metadata.timeCreated,
       meta: {
         processed: file.metadata.metadata ? true : false,
+        status: file.metadata.status,
         labels:
           file.metadata.metadata && file.metadata.metadata.labels
             ? JSON.parse(file.metadata.metadata.labels)
@@ -235,8 +236,16 @@ export class VideosService {
           file.metadata.metadata && file.metadata.metadata.objects
             ? JSON.parse(file.metadata.metadata.objects)
             : [],
-        summary:
-          file.metadata.metadata && file.metadata.metadata.summary
+        transcript:
+          file.metadata.metadata && file.metadata.metadata.transcript
+            ? JSON.parse(file.metadata.metadata.objects)
+            : [],
+        objectSummary:
+          file.metadata.metadata && file.metadata.metadata.objectSummary
+            ? JSON.parse(file.metadata.metadata.summary)
+            : [],
+        textSummary:
+          file.metadata.metadata && file.metadata.metadata.textSummary
             ? JSON.parse(file.metadata.metadata.summary)
             : [],
       },

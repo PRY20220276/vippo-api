@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { VideoIntelligenceServiceClient } from '@google-cloud/video-intelligence';
 
 enum Feature {
