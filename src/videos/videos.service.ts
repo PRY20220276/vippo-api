@@ -237,7 +237,7 @@ export class VideosService {
             : [],
         transcript:
           file.metadata.metadata && file.metadata.metadata.transcript
-            ? JSON.parse(file.metadata.metadata.objects)
+            ? JSON.parse(file.metadata.metadata.transcript)
             : [],
         objectSummary:
           file.metadata.metadata && file.metadata.metadata.objectSummary
