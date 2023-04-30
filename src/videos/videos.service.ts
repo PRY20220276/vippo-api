@@ -101,7 +101,6 @@ export class VideosService {
     videoCreatedEvent.gcsUri = video.path;
     videoCreatedEvent.userId = userId;
     videoCreatedEvent.videoId = video.id;
-    this.eventEmitter.emit('video.created', videoCreatedEvent);
 
     this.logger.log(`Video created successfully for user ${userId}`);
 
@@ -223,7 +222,7 @@ export class VideosService {
       createdAt: file.metadata.timeCreated,
       meta: {
         processed: file.metadata.metadata ? true : false,
-        status: file.metadata.status,
+        // status: file.metadata.status,
         labels:
           file.metadata.metadata && file.metadata.metadata.labels
             ? JSON.parse(file.metadata.metadata.labels)
@@ -242,11 +241,11 @@ export class VideosService {
             : [],
         objectSummary:
           file.metadata.metadata && file.metadata.metadata.objectSummary
-            ? JSON.parse(file.metadata.metadata.summary)
+            ? JSON.parse(file.metadata.metadata.objectSummary)
             : [],
         textSummary:
           file.metadata.metadata && file.metadata.metadata.textSummary
-            ? JSON.parse(file.metadata.metadata.summary)
+            ? JSON.parse(file.metadata.metadata.textSummary)
             : [],
       },
     };
