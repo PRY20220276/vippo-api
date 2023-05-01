@@ -55,25 +55,15 @@ exports.onVideoAnalysisReceived = async (event, context) => {
         .map((label) => {
           const segments = label.segments.map((segment) => {
             const time = segment.segment;
-            if (time.start_time_offset.seconds === undefined) {
-              time.start_time_offset.seconds = 0;
-            }
-            if (time.start_time_offset.nanos === undefined) {
-              time.start_time_offset.nanos = 0;
-            }
-            if (time.end_time_offset.seconds === undefined) {
-              time.endTimeOffset.seconds = 0;
-            }
-            if (time.end_time_offset.nanos === undefined) {
-              time.endTimeOffset.nanos = 0;
-            }
+            const startTimeSeconds = time.start_time_offset.seconds || 0;
+            const startTimeNanos = (time.start_time_offset.nanos || 0) / 1e9;
+            const endTimeSeconds = time.end_time_offset.seconds || 0;
+            const endTimeNanos = (time.end_time_offset.nanos || 0) / 1e9;
+            const startTime = startTimeSeconds + startTimeNanos;
+            const endTime = endTimeSeconds + endTimeNanos;
             return {
-              startTime:
-                time.start_time_offset.seconds +
-                (time.start_time_offset.nanos / 1e6).toFixed(0),
-              endTime:
-                time.end_time_offset.seconds +
-                (time.end_time_offset.nanos / 1e6).toFixed(0),
+              startTime: startTime,
+              endTime: endTime,
             };
           });
           return {
@@ -166,7 +156,7 @@ exports.onVideoAnalysisReceived = async (event, context) => {
       }
       summary.sort((a, b) => a.startTime - b.startTime);
       await updateObjectMetadata(mediaBucket, originalFileName, {
-        objects: JSON.stringify(objects),
+        objects: JSON.stringify(groupedObjects),
         objectSummary: JSON.stringify(summary),
       });
       break;
@@ -181,20 +171,12 @@ exports.onVideoAnalysisReceived = async (event, context) => {
             ) {
               return;
             }
-            if (result.timeOffset === undefined) {
-              result.timeOffset = {};
-            }
-            if (result.timeOffset.seconds === undefined) {
-              result.timeOffset.seconds = 0;
-            }
-            if (result.timeOffset.nanos === undefined) {
-              result.timeOffset.nanos = 0;
-            }
+            const startTimeSeconds = result.time_offset.seconds || 0;
+            const startTimeNanos = (result.time_offset.nanos || 0) / 1e9;
+            const timeOffset = startTimeSeconds + startTimeNanos;
             return {
               explicit_tag: result.pornography_likelihood,
-              offsetTime:
-                result.timeOffset.seconds +
-                (result.timeOffset.nanos / 1e6).toFixed(0),
+              offsetTime: timeOffset,
             };
           })
           .filter((frame) => frame !== undefined)
@@ -214,22 +196,14 @@ exports.onVideoAnalysisReceived = async (event, context) => {
             }
             const startTime = words[0].start_time;
             const endTime = words[words.length - 1].end_time;
-            if (startTime.seconds === undefined) {
-              startTime.seconds = 0;
-            }
-            if (startTime.nanos === undefined) {
-              startTime.nanos = 0;
-            }
-            if (endTime.seconds === undefined) {
-              endTime.seconds = 0;
-            }
-            if (endTime.nanos === undefined) {
-              endTime.nanos = 0;
-            }
+            const startTimeSeconds = startTime.seconds || 0;
+            const startTimeNanos = (startTime.nanos || 0) / 1e9;
+            const endTimeSeconds = endTime.seconds || 0;
+            const endTimeNanos = (endTime.nanos || 0) / 1e9;
             return {
               transcription: currentTranscript.transcript,
-              startTime: startTime.seconds + (startTime.nanos / 1e6).toFixed(0),
-              endTime: endTime.seconds + (endTime.nanos / 1e6).toFixed(0),
+              startTime: startTimeSeconds + startTimeNanos,
+              endTime: endTimeSeconds + endTimeNanos,
             };
           })
           .filter((alternative) => alternative !== undefined)

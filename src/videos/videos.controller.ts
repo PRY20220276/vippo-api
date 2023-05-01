@@ -41,7 +41,7 @@ export class VideosController {
     summary: 'Retrieve all of your videos in your personal drive',
   })
   findAll(
-    @Query() paginationQueryDto: PaginationQueryDto,
+    @Query() paginationQueryDto: SearchVideoQueryDto,
     @CurrentUser() user: User,
   ) {
     return this.videosService.findAll(paginationQueryDto, user.id);
