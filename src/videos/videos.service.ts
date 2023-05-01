@@ -108,23 +108,36 @@ export class VideosService {
   }
 
   async findAll(
-    paginationQueryDto: PaginationQueryDto,
+    paginationQueryDto: SearchVideoQueryDto,
     userId: number,
   ): Promise<object> {
     const limit = paginationQueryDto.limit || 10;
     const page = paginationQueryDto.page || 1;
+    const filterBy = paginationQueryDto.filterBy;
     const { items, totalItems } = await this.videoUploadService.findAllByUserId(
       userId,
       limit,
       page,
     );
-    const userVideos = items.map((videoFile) =>
-      this.parseFileObject(videoFile),
+
+    let userVideos = items.map((videoFile) => this.parseFileObject(videoFile));
+
+    if (filterBy && filterBy === 'processing') {
+      userVideos = userVideos.filter((video) => video.meta.processed === false);
+    } else {
+      userVideos = userVideos.filter((video) => video.meta.processed === true);
+    }
+
+    this.logger.log(
+      `Retrieved ${userVideos.length} videos for user #${userId}`,
     );
 
-    this.logger.log(`Retrieved ${items.length} videos for user #${userId}`);
-
-    return new PaginationResponseDto(userVideos, totalItems, page, limit);
+    return new PaginationResponseDto(
+      userVideos,
+      userVideos.length,
+      page,
+      limit,
+    );
   }
 
   async search(
@@ -156,18 +169,21 @@ export class VideosService {
   }
 
   async stats(userId: number) {
-    const total = await this.prismaService.video.count({
-      where: {
-        ownerId: userId,
-      },
-    });
+    const { items, totalItems } = await this.videoUploadService.findAllByUserId(
+      userId,
+      1000,
+      1,
+    );
 
-    const totalSize = await this.prismaService.video.aggregate({
-      _sum: { size: true },
-      where: { ownerId: userId },
-    });
+    const userVideos = items.map((videoFile) =>
+      this.parseFileObject(videoFile),
+    );
 
-    const usedSize = totalSize._sum.size;
+    const totalStorageUsed = userVideos.reduce((accumulator, currentVideo) => {
+      return accumulator + currentVideo.size;
+    }, 0);
+
+    const usedSize = totalStorageUsed;
     const maxSize = 1000000000;
     const usedGB = (usedSize / 1000000000).toFixed(2) + 'GB';
     const maxGB = (maxSize / 1000000000).toFixed(2) + 'GB';
@@ -180,7 +196,7 @@ export class VideosService {
     this.logger.log(`Retrieved stats videos for user #${userId}`);
 
     return {
-      countStorageItems: total,
+      countStorageItems: totalItems,
       totalStorageUsed: usedSize,
       maxStorageSize: maxSize,
       percentageStorageUsed: usedPercentage,
@@ -221,7 +237,15 @@ export class VideosService {
       contentType: file.metadata.contentType,
       createdAt: file.metadata.timeCreated,
       meta: {
-        processed: file.metadata.metadata ? true : false,
+        processed:
+          file.metadata.metadata &&
+          file.metadata.metadata.labels &&
+          file.metadata.metadata.explicitContent &&
+          file.metadata.metadata.objects &&
+          file.metadata.metadata.transcript &&
+          file.metadata.metadata.objectSummary
+            ? true
+            : false,
         // status: file.metadata.status,
         labels:
           file.metadata.metadata && file.metadata.metadata.labels
