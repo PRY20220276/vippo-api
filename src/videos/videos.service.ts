@@ -271,6 +271,18 @@ export class VideosService {
           file.metadata.metadata && file.metadata.metadata.textSummary
             ? JSON.parse(file.metadata.metadata.textSummary)
             : [],
+        podcast_summarization:
+          file.metadata.metadata && file.metadata.metadata.podcast_summarization
+            ? JSON.parse(file.metadata.metadata.podcast_summarization)
+            : [],
+        object_summarization:
+          file.metadata.metadata && file.metadata.metadata.object_summarization
+            ? JSON.parse(file.metadata.metadata.object_summarization)
+            : [],
+        custom_summarization:
+          file.metadata.metadata && file.metadata.metadata.custom_summarization
+            ? JSON.parse(file.metadata.metadata.custom_summarization)
+            : [],
       },
     };
   }
