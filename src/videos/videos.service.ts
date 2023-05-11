@@ -283,6 +283,10 @@ export class VideosService {
           file.metadata.metadata && file.metadata.metadata.custom_summarization
             ? JSON.parse(file.metadata.metadata.custom_summarization)
             : [],
+        custom_summaries:
+          file.metadata.metadata && file.metadata.metadata.custom_summaries
+            ? JSON.parse(file.metadata.metadata.custom_summaries)
+            : [],
       },
     };
   }
