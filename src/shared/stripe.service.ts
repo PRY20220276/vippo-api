@@ -22,7 +22,7 @@ export class StripeService {
           price: 'prod_NvO5Q6kzPe8E1J',
         },
       ],
-      mode: 'payment',
+      mode: 'subscription',
       success_url: 'https://app.vippo.space/',
       cancel_url: 'https://app.vippo.space/',
     });
