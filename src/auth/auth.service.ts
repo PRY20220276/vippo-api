@@ -48,12 +48,11 @@ export class AuthService {
   }
 
   async signUp(signUpDto: SignUpDto) {
-    if (signUpDto.email != 'manriqueacham@gmail.com') {
-      throw new BadRequestException('Sign up is not allowed');
-    }
     return this.usersService.create({
       email: signUpDto.email,
       password: signUpDto.password,
+      firstName: signUpDto.firstName,
+      lastName: signUpDto.lastName,
     });
   }
 
