@@ -19,14 +19,7 @@ export class StripeService {
       payment_method_types: ['card'],
       line_items: [
         {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Pro Plan',
-            },
-            unit_amount: 1490, // $20.00
-          },
-          quantity: 1,
+          price: 'prod_NvO5Q6kzPe8E1J',
         },
       ],
       mode: 'payment',
