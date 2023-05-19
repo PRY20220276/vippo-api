@@ -20,6 +20,7 @@ export class StripeService {
       line_items: [
         {
           price: 'price_1N9XJYI8AG5clu72y7iPnNuR',
+          quantity: 1,
         },
       ],
       mode: 'subscription',
