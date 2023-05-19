@@ -19,7 +19,7 @@ export class StripeService {
       payment_method_types: ['card'],
       line_items: [
         {
-          price: 'prod_NvO5Q6kzPe8E1J',
+          price: 'price_1N9XJYI8AG5clu72y7iPnNuR',
         },
       ],
       mode: 'subscription',
