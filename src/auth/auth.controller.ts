@@ -3,6 +3,7 @@ import {
   ClassSerializerInterceptor,
   Controller,
   Get,
+  Patch,
   Post,
   UseInterceptors,
 } from '@nestjs/common';
@@ -14,6 +15,7 @@ import { ExposedEndpoint } from './decorators/exposed-endpoint.decorator';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { SignInEmailDto } from './dto/sign-in-email.dto';
 import { SignUpDto } from './dto/sign-up.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('Auth Module')
 @Controller({
@@ -60,6 +62,18 @@ export class AuthController {
   })
   @Get('user')
   async getCurrentUser(@CurrentUser() user: User) {
-    return user;
+    return this.authService.getCurrentUser(user.id);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Update details of current user',
+  })
+  @Patch('user')
+  async updateDetails(
+    @Body() updateDto: UpdateUserDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.authService.updateUser(user.id, updateDto);
   }
 }

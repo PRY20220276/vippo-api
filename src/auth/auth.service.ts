@@ -1,14 +1,11 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { SignInEmailDto } from './dto/sign-in-email.dto';
 import * as argon2 from 'argon2';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { SignUpDto } from './dto/sign-up.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -81,5 +78,13 @@ export class AuthService {
       changePasswordDto.newPassword,
     );
     return { message: 'Password changed successfully' };
+  }
+
+  async updateUser(userId: number, body: UpdateUserDto) {
+    return this.usersService.update(body.firstName, body.lastName, userId);
+  }
+
+  async getCurrentUser(userId: number) {
+    return this.usersService.findOne(userId);
   }
 }

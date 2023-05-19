@@ -7,6 +7,7 @@ import { AnalysisModule } from './analysis/analysis.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { PlansModule } from './plans/plans.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     UsersModule,
     VideosModule,
     AnalysisModule,
+    PlansModule,
   ],
   providers: [
     {
