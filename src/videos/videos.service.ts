@@ -240,10 +240,7 @@ export class VideosService {
         processed:
           file.metadata.metadata &&
           file.metadata.metadata.labels &&
-          file.metadata.metadata.explicitContent &&
-          file.metadata.metadata.objects &&
-          file.metadata.metadata.transcript &&
-          file.metadata.metadata.objectSummary
+          file.metadata.metadata.transcript
             ? true
             : false,
         // status: file.metadata.status,
